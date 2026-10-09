@@ -1,4 +1,8 @@
 #include "vm.h"
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 error_codes args_analysis(int argc, const char * const argv[], FILE **fp)
 {
@@ -9,7 +13,7 @@ error_codes args_analysis(int argc, const char * const argv[], FILE **fp)
     }
     else if (argc == 2)
     {
-        *fp = fopen(argv[1], "r");
+        *fp = fopen(argv[1], "rb");
         return SUCCESSFUL_RETURN;
     }
     else
@@ -32,14 +36,21 @@ commands get_command(const char *command)
 
 stack_elem_t eval(stack_t *stack, FILE *fp)
 {
-    char line[MAX_COMMAND_SIZE] = {};
-    int tmp = 0;
-    commands command = UC;
     stack_elem_t res = 0;
+    size_t len = 0;
+    commands command = UC;
+    int tmp = 0;
 
-    while(fgets(line, MAX_COMMAND_SIZE, fp))
+    char *text = NULL;
+    text = read_text(fp);
+
+    char **lines = NULL;
+    lines = getlines(text, &len);
+
+
+    for (size_t i = 0; i < len; i++)
     {
-        sscanf(line, "%d", &tmp);
+        sscanf(lines[i], "%d", &tmp);
         command = (commands)tmp;
 
         switch(command)
@@ -47,7 +58,7 @@ stack_elem_t eval(stack_t *stack, FILE *fp)
             case PUSH:
             {
                 stack_elem_t elem = 0;
-                sscanf(line, "%*d" deb_spec, &elem);
+                sscanf(lines[i], "%*d%*c" deb_spec, &elem);
                 STACK_PUSH(stack, elem);
                 //stack_dump(stack, "to_check", "PUSH");
                 break;
@@ -88,12 +99,94 @@ stack_elem_t eval(stack_t *stack, FILE *fp)
             case HLT:
             {
                 STACK_DTOR(stack, SUCCESSFUL_RETURN);
+                free(text);
+                free(lines);
                 return res;
             }
             case UC:
+                free(text);
+                free(lines);
                 return POISON;
         }
     }
 
     return POISON;
+}
+
+char * read_text(FILE *fp)
+{
+    assert(fp);
+
+    long buf_size = get_file_size(fp);
+    char *buffer = (char *)calloc((size_t)buf_size + 1, sizeof(char));
+    if (buffer == NULL)
+        return NULL;
+
+    fread(buffer, sizeof(char), (size_t)buf_size, fp);
+    buffer[buf_size] = '\0';
+
+    return buffer;
+}
+
+char ** getlines(char *text, size_t *len)
+{
+    assert(text);
+    assert(len);
+
+    buf_data text_info = {.char_num = 0, .strings_num = 1};
+
+    parse_string(&text_info, text);
+
+    char **onegin = (char **)calloc(text_info.strings_num, sizeof(char *));
+    if (onegin == NULL)
+        return NULL;
+    onegin[0] = text;
+
+    *len = fill_lines(onegin, text_info, text);
+    return onegin;
+}
+
+long get_file_size(FILE *fp)
+{
+    assert(fp);
+
+    int file_num =fileno(fp);
+    struct stat file_info = {};
+    fstat(file_num, &file_info);
+
+    return file_info.st_size;
+}
+
+void parse_string(buf_data *text_info, char *text)
+{   assert(text_info);
+    assert(text);
+
+
+    while(text[text_info->char_num])
+    {
+        if (text[text_info->char_num] == '\n')
+        {
+            text_info->strings_num++;
+            text[text_info->char_num] = '\0';
+        }
+
+        text_info->char_num++;
+    }
+}
+
+size_t fill_lines(char **onegin, buf_data text_info, char *text)
+{
+    assert(onegin);
+    assert(text);
+
+    size_t pointer = 1;
+    for (size_t j = 0; j < text_info.char_num; j++)
+    {
+        if (text[j] == '\0')
+        {
+            onegin[pointer++] = text + j + 1;
+        }
+    }
+
+    return pointer;
 }

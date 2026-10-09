@@ -6,14 +6,20 @@ int main(int argc, const char * const argv[])
 
     args_analysis(argc, argv, &fp);
 
-    char line[MAX_COMMAND_SIZE] = {};
-    int tmp = 0;
+    size_t len = 0;
     commands command = UC;
+    int tmp = 0;
 
-    while (fgets(line, MAX_COMMAND_SIZE, fp))
+    char *text = NULL;
+    text = read_text(fp);
+
+    char **lines = NULL;
+    lines = getlines(text, &len);
+
+    for (size_t i = 0; i < len; i++)
     {
-        sscanf(line, "%d", &tmp);
-        command = (commands) tmp;
+        sscanf(lines[i], "%d", &tmp);
+        command = (commands)tmp;
 
         switch(command)
         {
@@ -29,12 +35,16 @@ int main(int argc, const char * const argv[])
         if (command == PUSH)
         {
             stack_elem_t elem = 0;
-            sscanf(line, "%*s" deb_spec, &elem);
+            sscanf(lines[i], "%*d%*c" deb_spec, &elem);
             printf(deb_spec, elem);
         }
 
         putchar('\n');
     }
+    free(text);
+    text = NULL;
+    free(lines);
+    lines = NULL;
 
     return 0;
 }

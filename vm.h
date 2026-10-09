@@ -15,6 +15,11 @@ typedef enum commands
     UC= 666
 } comands;
 
+typedef struct buf_data
+{
+    size_t char_num;
+    size_t strings_num;
+} buf_data;
 
 #define COMMAND_CMP(to_check, reference) {\
      if (strcmp(to_check, #reference) == 0)\
@@ -24,3 +29,8 @@ typedef enum commands
 error_codes args_analysis(int argc, const char * const argv[], FILE **fp);
 commands get_command(const char *command);
 stack_elem_t eval(stack_t *stack, FILE *fp);
+char * read_text(FILE *fp);
+long get_file_size(FILE *fp);
+void parse_string(buf_data *text_info, char *text);
+size_t fill_lines(char **onegin, buf_data text_info, char *text);
+char ** getlines(char *text, size_t *len);
