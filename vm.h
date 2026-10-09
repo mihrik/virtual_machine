@@ -11,7 +11,7 @@ typedef enum commands
     SUB = 3,
     DIV = 4,
     OUT = 5,
-    HLT = 0,
+    HLT = 0xF4,
     UC= 666
 } comands;
 
@@ -20,6 +20,13 @@ typedef struct buf_data
     size_t char_num;
     size_t strings_num;
 } buf_data;
+
+#define CHECK_ERROR(message) {\
+    PRINT_COLOR(EXTRA_RED, #message " WHILE DOING %s:%d in function: %s", __FILE__, __LINE__, __func__);\
+    free(text);\
+    free(code);\
+    return POISON;\
+}
 
 #define COMMAND_CMP(to_check, reference) {\
      if (strcmp(to_check, #reference) == 0)\

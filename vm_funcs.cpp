@@ -6,12 +6,10 @@
 
 error_codes args_analysis(int argc, const char * const argv[], FILE **fp)
 {
-    if (argc == 1)
-    {
-        *fp = stdin;
-        return SUCCESSFUL_RETURN;
-    }
-    else if (argc == 2)
+    assert(argv);
+    assert(fp);
+
+    if (argc == 2)
     {
         *fp = fopen(argv[1], "rb");
         return SUCCESSFUL_RETURN;
@@ -24,6 +22,8 @@ error_codes args_analysis(int argc, const char * const argv[], FILE **fp)
 
 commands get_command(const char *command)
 {
+    assert(command);
+
     COMMAND_CMP(command, PUSH);
     COMMAND_CMP(command, ADD);
     COMMAND_CMP(command, SUB);
@@ -36,6 +36,9 @@ commands get_command(const char *command)
 
 stack_elem_t eval(stack_t *stack, FILE *fp)
 {
+    assert(stack);
+    assert(fp);
+
     stack_elem_t res = 0;
     size_t len = 0;
     commands command = UC;
@@ -44,13 +47,22 @@ stack_elem_t eval(stack_t *stack, FILE *fp)
     char *text = NULL;
     text = read_text(fp);
 
-    char **lines = NULL;
-    lines = getlines(text, &len);
+    char **code = NULL;
+    code = getlines(text, &len);
 
+    if (text == NULL)
+    {
+        CHECK_ERROR("TEXT_MEMORY_ALLOCATION_ERROR\n");
+    }
+
+    if (code == NULL)
+    {
+        CHECK_ERROR("_MEMORY_ALLOCATION_ERROR\n");
+    }
 
     for (size_t i = 0; i < len; i++)
     {
-        sscanf(lines[i], "%d", &tmp);
+        sscanf(code[i], "%d", &tmp);
         command = (commands)tmp;
 
         switch(command)
@@ -58,23 +70,29 @@ stack_elem_t eval(stack_t *stack, FILE *fp)
             case PUSH:
             {
                 stack_elem_t elem = 0;
-                sscanf(lines[i], "%*d%*c" deb_spec, &elem);
+
+                sscanf(code[i], "%*d%*c" deb_spec, &elem);
+
                 STACK_PUSH(stack, elem);
+
                 //stack_dump(stack, "to_check", "PUSH");
                 break;
             }
             case ADD:
             {
                 stack_elem_t elem1 = 0, elem2 = 0;
+
                 STACK_POP(stack, &elem1);
                 STACK_POP(stack, &elem2);
                 STACK_PUSH(stack, elem1 + elem2);
+
                 //stack_dump(stack, "to_check", "ADD");
                 break;
             }
             case SUB:
             {
                 stack_elem_t elem1 = 0, elem2 = 0;
+
                 STACK_POP(stack, &elem1);
                 STACK_POP(stack, &elem2);
                 STACK_PUSH(stack, elem2 - elem1);
@@ -84,15 +102,18 @@ stack_elem_t eval(stack_t *stack, FILE *fp)
             case DIV:
             {
                 stack_elem_t elem1 = 0, elem2 = 0;
+
                 STACK_POP(stack, &elem1);
                 STACK_POP(stack, &elem2);
                 STACK_PUSH(stack, elem2 / elem1);
+
                 //stack_dump(stack, "to_check", "DIV");
                 break;
             }
             case OUT:
             {
                 STACK_POP(stack, &res);
+
                 //stack_dump(stack, "to_check", "OUT");
                 break;
             }
@@ -100,16 +121,22 @@ stack_elem_t eval(stack_t *stack, FILE *fp)
             {
                 STACK_DTOR(stack, SUCCESSFUL_RETURN);
                 free(text);
-                free(lines);
+                free(code);
+
                 return res;
             }
             case UC:
                 free(text);
-                free(lines);
+                free(code);
+
                 return POISON;
+            default:
+                exit(0);
         }
     }
 
+    free(text);
+    free(code);
     return POISON;
 }
 

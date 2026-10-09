@@ -8,7 +8,7 @@
 
 typedef int stack_elem_t;
 #define deb_spec "%d"
-const stack_elem_t POISON = 666;
+const stack_elem_t POISON = 0x12345678;
 const stack_elem_t LEFT_CANARY = 0xEDA | 0x40A0B000;
 const stack_elem_t RIGHT_CANARY = 0xEDA | 0x40A0B000;
 const size_t MAX_CAPACITY = 10000;

@@ -3,7 +3,12 @@
 int main(int argc, const char * const argv[])
 {
     FILE *fp = NULL;
-    args_analysis(argc, argv, &fp);
+    error_codes err = SUCCESSFUL_RETURN;
+    if ((err = args_analysis(argc, argv, &fp)) != SUCCESSFUL_RETURN)
+    {
+        PRINT_COLOR(EXTRA_RED, "INVALID_QUANTITY_OF_ARGUMENTS");
+        return err;
+    }
 
     stack_t stack = {};
     STACK_CTOR(&stack, 10, "stack", __FILE__, __func__, __LINE__);
