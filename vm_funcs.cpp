@@ -40,38 +40,29 @@ stack_elem_t eval(stack_t *stack, FILE *fp)
     assert(fp);
 
     stack_elem_t res = 0;
-    size_t len = 0;
     commands command = UC;
-    int tmp = 0;
+    size_t i = 0;
 
-    char *text = NULL;
-    text = read_text(fp);
-
-    char **code = NULL;
-    code = getlines(text, &len);
-
-    if (text == NULL)
-    {
-        CHECK_ERROR("TEXT_MEMORY_ALLOCATION_ERROR\n");
-    }
+    stack_elem_t *code = NULL;
+    code = read_text(fp);
 
     if (code == NULL)
     {
-        CHECK_ERROR("_MEMORY_ALLOCATION_ERROR\n");
+        CHECK_ERROR("CODE_MEMORY_ALLOCATION_ERROR\n");
     }
 
-    for (size_t i = 0; i < len; i++)
+    do
     {
-        sscanf(code[i], "%d", &tmp);
-        command = (commands)tmp;
+        command = (commands)code[i];
 
         switch(command)
         {
             case PUSH:
             {
+                i++;
                 stack_elem_t elem = 0;
 
-                sscanf(code[i], "%*d%*c" deb_spec, &elem);
+                elem = code[i];
 
                 STACK_PUSH(stack, elem);
 
@@ -120,57 +111,37 @@ stack_elem_t eval(stack_t *stack, FILE *fp)
             case HLT:
             {
                 STACK_DTOR(stack, SUCCESSFUL_RETURN);
-                free(text);
                 free(code);
 
                 return res;
             }
             case UC:
-                free(text);
                 free(code);
 
                 return POISON;
             default:
                 exit(0);
         }
-    }
+        i++;
+    } while (command != HLT);
 
-    free(text);
     free(code);
     return POISON;
 }
 
-char * read_text(FILE *fp)
+stack_elem_t * read_text(FILE *fp)
 {
     assert(fp);
 
-    long buf_size = get_file_size(fp);
-    char *buffer = (char *)calloc((size_t)buf_size + 1, sizeof(char));
+    long buf_size = get_file_size(fp) / (long)sizeof(stack_elem_t);
+    stack_elem_t *buffer = (stack_elem_t *)calloc((size_t)buf_size, sizeof(stack_elem_t));
     if (buffer == NULL)
         return NULL;
 
-    fread(buffer, sizeof(char), (size_t)buf_size, fp);
-    buffer[buf_size] = '\0';
+
+    fread(buffer, sizeof(stack_elem_t), (size_t)buf_size, fp);
 
     return buffer;
-}
-
-char ** getlines(char *text, size_t *len)
-{
-    assert(text);
-    assert(len);
-
-    buf_data text_info = {.char_num = 0, .strings_num = 1};
-
-    parse_string(&text_info, text);
-
-    char **onegin = (char **)calloc(text_info.strings_num, sizeof(char *));
-    if (onegin == NULL)
-        return NULL;
-    onegin[0] = text;
-
-    *len = fill_lines(onegin, text_info, text);
-    return onegin;
 }
 
 long get_file_size(FILE *fp)
@@ -182,38 +153,4 @@ long get_file_size(FILE *fp)
     fstat(file_num, &file_info);
 
     return file_info.st_size;
-}
-
-void parse_string(buf_data *text_info, char *text)
-{   assert(text_info);
-    assert(text);
-
-
-    while(text[text_info->char_num])
-    {
-        if (text[text_info->char_num] == '\n')
-        {
-            text_info->strings_num++;
-            text[text_info->char_num] = '\0';
-        }
-
-        text_info->char_num++;
-    }
-}
-
-size_t fill_lines(char **onegin, buf_data text_info, char *text)
-{
-    assert(onegin);
-    assert(text);
-
-    size_t pointer = 1;
-    for (size_t j = 0; j < text_info.char_num; j++)
-    {
-        if (text[j] == '\0')
-        {
-            onegin[pointer++] = text + j + 1;
-        }
-    }
-
-    return pointer;
 }

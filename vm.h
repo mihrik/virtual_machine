@@ -2,7 +2,7 @@
 #include <string.h>
 
 const int MAX_COMMAND_SIZE = 40;
-
+const int MAX_BUFFER_SIZE = 200;
 
 typedef enum commands
 {
@@ -23,7 +23,6 @@ typedef struct buf_data
 
 #define CHECK_ERROR(message) {\
     PRINT_COLOR(EXTRA_RED, #message " WHILE DOING %s:%d in function: %s", __FILE__, __LINE__, __func__);\
-    free(text);\
     free(code);\
     return POISON;\
 }
@@ -36,8 +35,5 @@ typedef struct buf_data
 error_codes args_analysis(int argc, const char * const argv[], FILE **fp);
 commands get_command(const char *command);
 stack_elem_t eval(stack_t *stack, FILE *fp);
-char * read_text(FILE *fp);
+stack_elem_t * read_text(FILE *fp);
 long get_file_size(FILE *fp);
-void parse_string(buf_data *text_info, char *text);
-size_t fill_lines(char **onegin, buf_data text_info, char *text);
-char ** getlines(char *text, size_t *len);

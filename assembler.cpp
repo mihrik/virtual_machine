@@ -2,15 +2,19 @@
 
 int main(int argc, const char * const argv[])
 {
-    FILE *fp = NULL;
+    FILE *fp_r = NULL;
 
-    args_analysis(argc, argv, &fp);
+    args_analysis(argc, argv, &fp_r);
 
     char line[MAX_COMMAND_SIZE] = {};
     char command_line[MAX_COMMAND_SIZE] = {};
+    stack_elem_t buffer[MAX_BUFFER_SIZE] = {};
+    size_t ip = 0;
     commands command = UC;
 
-    while (fgets(line, MAX_COMMAND_SIZE, fp))
+    FILE *fp_w = fopen("compiled.bin", "w");
+
+    while (fgets(line, MAX_COMMAND_SIZE, fp_r))
     {
         if (sscanf(line, "%s", command_line) != 1)
         {
@@ -25,7 +29,7 @@ int main(int argc, const char * const argv[])
             return UNKNOWN_COMMAND;
         }
 
-        printf("%d ", command);
+        buffer[ip++] = command;
 
         if (command == PUSH)
         {
@@ -37,11 +41,11 @@ int main(int argc, const char * const argv[])
                 return INVALID_QUANTITY_OF_ARGUMENTS;
             }
 
-            printf(deb_spec, elem);
+            buffer[ip++] = elem;
         }
-
-        putchar('\n');
     }
+
+    fwrite(buffer, sizeof(stack_elem_t), ip, fp_w);
 
     return 0;
 }
