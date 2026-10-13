@@ -30,18 +30,21 @@ commands get_command(const char *command)
     COMMAND_CMP(command, DIV);
     COMMAND_CMP(command, OUT);
     COMMAND_CMP(command, HLT);
+    COMMAND_CMP(command, PUSHr);
+    COMMAND_CMP(command, POPr);
+    COMMAND_CMP(command, MUL);
+    COMMAND_CMP(command, JMP);
 
     return UC;
 }
 
-stack_elem_t eval(stack_t *stack, FILE *fp)
+stack_elem_t eval(vm_t *vm, FILE *fp)
 {
-    assert(stack);
+    assert(vm);
     assert(fp);
 
     stack_elem_t res = 0;
     commands command = UC;
-    size_t i = 0;
 
     stack_elem_t *code = NULL;
     code = read_text(fp);
@@ -53,18 +56,18 @@ stack_elem_t eval(stack_t *stack, FILE *fp)
 
     do
     {
-        command = (commands)code[i];
+        command = (commands)code[vm->ip];
 
         switch(command)
         {
             case PUSH:
             {
-                i++;
+                vm->ip++;
                 stack_elem_t elem = 0;
 
-                elem = code[i];
+                elem = code[vm->ip];
 
-                STACK_PUSH(stack, elem);
+                STACK_PUSH(&(vm->stack), elem);
 
                 //stack_dump(stack, "to_check", "PUSH");
                 break;
@@ -73,9 +76,9 @@ stack_elem_t eval(stack_t *stack, FILE *fp)
             {
                 stack_elem_t elem1 = 0, elem2 = 0;
 
-                STACK_POP(stack, &elem1);
-                STACK_POP(stack, &elem2);
-                STACK_PUSH(stack, elem1 + elem2);
+                STACK_POP(&(vm->stack), &elem1);
+                STACK_POP(&(vm->stack), &elem2);
+                STACK_PUSH(&(vm->stack), elem1 + elem2);
 
                 //stack_dump(stack, "to_check", "ADD");
                 break;
@@ -84,9 +87,9 @@ stack_elem_t eval(stack_t *stack, FILE *fp)
             {
                 stack_elem_t elem1 = 0, elem2 = 0;
 
-                STACK_POP(stack, &elem1);
-                STACK_POP(stack, &elem2);
-                STACK_PUSH(stack, elem2 - elem1);
+                STACK_POP(&(vm->stack), &elem1);
+                STACK_POP(&(vm->stack), &elem2);
+                STACK_PUSH(&(vm->stack), elem2 - elem1);
                 //stack_dump(stack, "to_check", "SUB");
                 break;
             }
@@ -94,23 +97,60 @@ stack_elem_t eval(stack_t *stack, FILE *fp)
             {
                 stack_elem_t elem1 = 0, elem2 = 0;
 
-                STACK_POP(stack, &elem1);
-                STACK_POP(stack, &elem2);
-                STACK_PUSH(stack, elem2 / elem1);
+                STACK_POP(&(vm->stack), &elem1);
+                STACK_POP(&(vm->stack), &elem2);
+                STACK_PUSH(&(vm->stack), elem2 / elem1);
 
                 //stack_dump(stack, "to_check", "DIV");
                 break;
             }
+            case MUL:
+            {
+                stack_elem_t elem1 = 0, elem2 = 0;
+
+                STACK_POP(&(vm->stack), &elem1);
+                STACK_POP(&(vm->stack), &elem2);
+                STACK_PUSH(&(vm->stack), elem2 * elem1);
+
+                //stack_dump(stack, "to_check", "DIV");
+                break;
+            }
+            case POPr:
+            {
+                vm->ip++;
+                registers reg = (registers)code[vm->ip];
+                stack_elem_t elem = 0;
+                STACK_POP(&(vm->stack), &elem);
+
+                vm->registers[reg] = elem;
+                break;
+            }
+            case PUSHr:
+            {
+                vm->ip++;
+                registers reg = (registers)code[vm->ip];
+                STACK_PUSH(&(vm->stack), vm->registers[reg]);
+
+                break;
+            }
+            case JMP:
+            {
+                vm->ip = (size_t)code[vm->ip + 1] - 1;
+
+                break;
+            }
             case OUT:
             {
-                STACK_POP(stack, &res);
+                STACK_POP(&(vm->stack), &res);
+                printf("now res s equal to <" deb_spec ">\n", res);
+                getchar();
 
                 //stack_dump(stack, "to_check", "OUT");
                 break;
             }
             case HLT:
             {
-                STACK_DTOR(stack, SUCCESSFUL_RETURN);
+                STACK_DTOR(&(vm->stack), SUCCESSFUL_RETURN);
                 free(code);
 
                 return res;
@@ -122,7 +162,7 @@ stack_elem_t eval(stack_t *stack, FILE *fp)
             default:
                 exit(0);
         }
-        i++;
+        vm->ip++;
     } while (command != HLT);
 
     free(code);
@@ -153,4 +193,14 @@ long get_file_size(FILE *fp)
     fstat(file_num, &file_info);
 
     return file_info.st_size;
+}
+
+registers get_register(const char *reg)
+{
+    REGISTER_CMP(reg, AX);
+    REGISTER_CMP(reg, BX);
+    REGISTER_CMP(reg, CX);
+    REGISTER_CMP(reg, DX);
+
+    return UR;
 }

@@ -1,4 +1,5 @@
 #include "vm.h"
+#include <string.h>
 
 int main(int argc, const char * const argv[])
 {
@@ -11,6 +12,7 @@ int main(int argc, const char * const argv[])
     stack_elem_t buffer[MAX_BUFFER_SIZE] = {};
     size_t ip = 0;
     commands command = UC;
+    int labels[5] = {-1, -1, -1, -1, -1};
 
     FILE *fp_w = fopen("compiled.bin", "w");
 
@@ -22,6 +24,18 @@ int main(int argc, const char * const argv[])
             return INVALID_QUANTITY_OF_ARGUMENTS;
         }
 
+        char *semicolon_ptr = NULL;
+        if ((semicolon_ptr = strchr(line, ';')) != NULL)
+            *semicolon_ptr = '\0';
+
+        if (line[0] == ':')
+        {
+            int mark = 0;
+            sscanf(line, ":%d", &mark);
+            labels[mark] = (int)ip;
+            continue;
+        }
+
         command = get_command(command_line);
         if (command == UC)
         {
@@ -31,17 +45,43 @@ int main(int argc, const char * const argv[])
 
         buffer[ip++] = command;
 
-        if (command == PUSH)
+        switch(command)
         {
-            stack_elem_t elem = 0;
+            case PUSH :
+                        {
+                            stack_elem_t elem = 0;
 
-            if (sscanf(line, "%*s" deb_spec, &elem) != 1)
-            {
-                printf("ABSENCE OF THE SECOND PARAMETER OF PUSH" " WHILE DOING %s:%d in function: %s\n", __FILE__, __LINE__, __func__);
-                return INVALID_QUANTITY_OF_ARGUMENTS;
-            }
+                            if (sscanf(line, "%*s" deb_spec, &elem) != 1)
+                            {
+                                printf("ABSENCE OF THE SECOND PARAMETER OF PUSH" " WHILE DOING %s:%d in function: %s\n", __FILE__, __LINE__, __func__);
+                                return INVALID_QUANTITY_OF_ARGUMENTS;
+                            }
 
-            buffer[ip++] = elem;
+                            buffer[ip++] = elem;
+
+                            break;
+                        }
+            case PUSHr:
+            case POPr :
+                        {
+                            char reg[MAX_COMMAND_SIZE] = {};
+                            sscanf(line, "%*s %s", reg);
+
+                            stack_elem_t rnum = get_register(reg);
+                            buffer[ip++] = rnum;
+
+                            break;
+                        }
+            case JMP  : {
+                            size_t mark = 0;
+
+                            sscanf(line, "%*s %zu", &mark);
+                            buffer[ip++] = labels[mark];
+
+                            break;
+                        }
+            default   : break;
+
         }
     }
 

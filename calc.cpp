@@ -10,10 +10,10 @@ int main(int argc, const char * const argv[])
         return err;
     }
 
-    stack_t stack = {};
-    STACK_CTOR(&stack, 10, "stack", __FILE__, __func__, __LINE__);
+    vm_t vm = {.stack = {}, .code = NULL, .ip = 0, .registers = {}};
+    STACK_CTOR(&(vm.stack), 10, "stack", __FILE__, __func__, __LINE__);
 
-    stack_elem_t res = eval(&stack, fp);
+    stack_elem_t res = eval(&vm, fp);
 
     printf("result is equal to " deb_spec "\n", res);
 
