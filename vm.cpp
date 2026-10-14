@@ -10,8 +10,9 @@ int main(int argc, const char * const argv[])
         return err;
     }
 
-    vm_t vm = {.stack = {}, .code = NULL, .ip = 0, .registers = {}};
+    vm_t vm = {.stack = {}, .funcs = {}, .code = NULL, .ip = 0, .registers = {}};
     STACK_CTOR(&(vm.stack), 10, "stack", __FILE__, __func__, __LINE__);
+    STACK_CTOR(&(vm.funcs), 10, "funcs", __FILE__, __func__, __LINE__);
 
     stack_elem_t res = eval(&vm, fp);
 

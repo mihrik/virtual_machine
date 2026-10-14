@@ -22,6 +22,8 @@ typedef enum commands
     JE = 14,
     JNE = 15,
     IN = 16,
+    CALL = 17,
+    RET = 18,
     HLT = 0xF4,
     UC= 666
 } comands;
@@ -45,6 +47,7 @@ typedef struct buf_data
 typedef struct vm_t
 {
     stack_t stack;
+    stack_t funcs;
     stack_elem_t *code;
     size_t ip;
     stack_elem_t registers[5];
@@ -113,3 +116,5 @@ error_codes vm_jbe(vm_t *vm, stack_elem_t *code);
 error_codes vm_je(vm_t *vm, stack_elem_t *code);
 error_codes vm_jne(vm_t *vm, stack_elem_t *code);
 error_codes vm_in(vm_t *vm);
+error_codes vm_call(vm_t *vm, stack_elem_t *code);
+error_codes vm_ret(vm_t *vm);

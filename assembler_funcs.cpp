@@ -21,6 +21,8 @@ commands get_command(const char *command)
     COMMAND_CMP(command, JE);
     COMMAND_CMP(command, JNE);
     COMMAND_CMP(command, IN);
+    COMMAND_CMP(command, RET);
+    COMMAND_CMP(command, CALL);
 
     return UC;
 }
@@ -105,6 +107,7 @@ error_codes command_analysis(char line[], commands command, size_t *ip, stack_el
         case JBE  :
         case JE   :
         case JNE  :
+        case CALL :
                     {
                         asm_jmp(line, ip, buffer, labels);
 

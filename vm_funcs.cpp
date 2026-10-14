@@ -132,6 +132,18 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
 
                 break;
             }
+            case CALL:
+            {
+                vm_call(vm, code);
+
+                break;
+            }
+            case RET:
+            {
+                vm_ret(vm);
+
+                break;
+            }
             case OUT:
             {
                 vm_out(vm, &res);
@@ -277,6 +289,7 @@ error_codes vm_out(vm_t *vm, stack_elem_t *res)
 error_codes vm_hlt(vm_t *vm, stack_elem_t *code)
 {
     STACK_DTOR(&(vm->stack), SUCCESSFUL_RETURN);
+    STACK_DTOR(&(vm->funcs), SUCCESSFUL_RETURN);
     free(code);
 
     return SUCCESSFUL_RETURN;
@@ -371,6 +384,25 @@ error_codes vm_in(vm_t *vm)
     scanf(deb_spec, &elem);
 
     STACK_PUSH(&(vm->stack), elem);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_call(vm_t *vm, stack_elem_t *code)
+{
+    STACK_PUSH(&(vm->funcs), (stack_elem_t)vm->ip + 1);
+    vm_jmp(vm, code);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_ret(vm_t *vm)
+{
+    stack_elem_t new_ip = 0;
+
+    STACK_POP(&(vm->funcs), &new_ip);
+
+    vm->ip = (size_t)new_ip;
 
     return SUCCESSFUL_RETURN;
 }
