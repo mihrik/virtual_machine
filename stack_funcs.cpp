@@ -59,7 +59,8 @@ error_codes stack_push(stack_t *stack, stack_elem_t elem)
 
         CDO(stack->data[stack->capacity + 1] = RIGHT_CANARY;)
 
-        poison_stack(stack->size, stack->capacity, stack);
+        poison_stack(stack->size + 1, stack->capacity + 1, stack);
+        stack_dump(stack, "to_check", "push");
     }
 
     stack->data[++stack->size] = elem;
