@@ -90,6 +90,42 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
 
                 break;
             }
+            case JA:
+            {
+                vm_ja(vm, code);
+
+                break;
+            }
+            case JAE:
+            {
+                vm_jae(vm, code);
+
+                break;
+            }
+            case JB:
+            {
+                vm_jb(vm, code);
+
+                break;
+            }
+            case JBE:
+            {
+                vm_jbe(vm, code);
+
+                break;
+            }
+            case JE:
+            {
+                vm_je(vm, code);
+
+                break;
+            }
+            case JNE:
+            {
+                vm_jne(vm, code);
+
+                break;
+            }
             case OUT:
             {
                 vm_out(vm, &res);
@@ -228,7 +264,6 @@ error_codes vm_out(vm_t *vm, stack_elem_t *res)
 {
     STACK_POP(&(vm->stack), res);
     printf("now res s equal to <" deb_spec ">\n", *res);
-    getchar();
 
     return SUCCESSFUL_RETURN;
 }
@@ -237,6 +272,89 @@ error_codes vm_hlt(vm_t *vm, stack_elem_t *code)
 {
     STACK_DTOR(&(vm->stack), SUCCESSFUL_RETURN);
     free(code);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_ja(vm_t *vm, stack_elem_t *code)
+{
+    stack_elem_t elem1 = 0, elem2 = 0;
+
+    STACK_POP(&(vm->stack), &elem1);
+    STACK_POP(&(vm->stack), &elem2);
+    if (elem2 > elem1)
+        vm_jmp(vm, code);
+    else
+        vm->ip += 1;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_jae(vm_t *vm, stack_elem_t *code)
+{
+    stack_elem_t elem1 = 0, elem2 = 0;
+    STACK_POP(&(vm->stack), &elem1);
+    STACK_POP(&(vm->stack), &elem2);
+    if (elem2 >= elem1)
+        vm_jmp(vm, code);
+    else
+        vm->ip += 1;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_jb(vm_t *vm, stack_elem_t *code)
+{
+    stack_elem_t elem1 = 0, elem2 = 0;
+
+    STACK_POP(&(vm->stack), &elem1);
+    STACK_POP(&(vm->stack), &elem2);
+    if (elem2 < elem1)
+        vm_jmp(vm, code);
+    else
+        vm->ip += 1;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_jbe(vm_t *vm, stack_elem_t *code)
+{
+    stack_elem_t elem1 = 0, elem2 = 0;
+
+    STACK_POP(&(vm->stack), &elem1);
+    STACK_POP(&(vm->stack), &elem2);
+    if (elem2 <= elem1)
+        vm_jmp(vm, code);
+    else
+        vm->ip += 1;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_je(vm_t *vm, stack_elem_t *code)
+{
+    stack_elem_t elem1 = 0, elem2 = 0;
+
+    STACK_POP(&(vm->stack), &elem1);
+    STACK_POP(&(vm->stack), &elem2);
+    if (elem2 == elem1)
+        vm_jmp(vm, code);
+    else
+        vm->ip += 1;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_jne(vm_t *vm, stack_elem_t *code)
+{
+    stack_elem_t elem1 = 0, elem2 = 0;
+
+    STACK_POP(&(vm->stack), &elem1);
+    STACK_POP(&(vm->stack), &elem2);
+    if (elem2 != elem1)
+        vm_jmp(vm, code);
+    else
+        vm->ip += 1;
 
     return SUCCESSFUL_RETURN;
 }
