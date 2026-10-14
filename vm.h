@@ -21,6 +21,7 @@ typedef enum commands
     JBE = 13,
     JE = 14,
     JNE = 15,
+    IN = 16,
     HLT = 0xF4,
     UC= 666
 } comands;
@@ -111,3 +112,4 @@ error_codes vm_jb(vm_t *vm, stack_elem_t *code);
 error_codes vm_jbe(vm_t *vm, stack_elem_t *code);
 error_codes vm_je(vm_t *vm, stack_elem_t *code);
 error_codes vm_jne(vm_t *vm, stack_elem_t *code);
+error_codes vm_in(vm_t *vm);

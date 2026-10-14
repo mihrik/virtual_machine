@@ -126,6 +126,12 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
 
                 break;
             }
+            case IN:
+            {
+                vm_in(vm);
+
+                break;
+            }
             case OUT:
             {
                 vm_out(vm, &res);
@@ -355,6 +361,16 @@ error_codes vm_jne(vm_t *vm, stack_elem_t *code)
         vm_jmp(vm, code);
     else
         vm->ip += 1;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_in(vm_t *vm)
+{
+    stack_elem_t elem = 0;
+    scanf(deb_spec, &elem);
+
+    STACK_PUSH(&(vm->stack), elem);
 
     return SUCCESSFUL_RETURN;
 }

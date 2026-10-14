@@ -20,6 +20,7 @@ commands get_command(const char *command)
     COMMAND_CMP(command, JBE);
     COMMAND_CMP(command, JE);
     COMMAND_CMP(command, JNE);
+    COMMAND_CMP(command, IN);
 
     return UC;
 }
