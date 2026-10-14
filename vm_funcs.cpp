@@ -20,24 +20,6 @@ error_codes args_analysis(int argc, const char * const argv[], FILE **fp)
     }
 }
 
-commands get_command(const char *command)
-{
-    assert(command);
-
-    COMMAND_CMP(command, PUSH);
-    COMMAND_CMP(command, ADD);
-    COMMAND_CMP(command, SUB);
-    COMMAND_CMP(command, DIV);
-    COMMAND_CMP(command, OUT);
-    COMMAND_CMP(command, HLT);
-    COMMAND_CMP(command, PUSHr);
-    COMMAND_CMP(command, POPr);
-    COMMAND_CMP(command, MUL);
-    COMMAND_CMP(command, JMP);
-
-    return UC;
-}
-
 stack_elem_t eval(vm_t *vm, FILE *fp)
 {
     assert(vm);
@@ -62,96 +44,61 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
         {
             case PUSH:
             {
-                vm->ip++;
-                stack_elem_t elem = 0;
+                vm_push(vm, code);
 
-                elem = code[vm->ip];
-
-                STACK_PUSH(&(vm->stack), elem);
-
-                //stack_dump(stack, "to_check", "PUSH");
                 break;
             }
             case ADD:
             {
-                stack_elem_t elem1 = 0, elem2 = 0;
+                vm_add(vm);
 
-                STACK_POP(&(vm->stack), &elem1);
-                STACK_POP(&(vm->stack), &elem2);
-                STACK_PUSH(&(vm->stack), elem1 + elem2);
-
-                //stack_dump(stack, "to_check", "ADD");
                 break;
             }
             case SUB:
             {
-                stack_elem_t elem1 = 0, elem2 = 0;
+                vm_sub(vm);
 
-                STACK_POP(&(vm->stack), &elem1);
-                STACK_POP(&(vm->stack), &elem2);
-                STACK_PUSH(&(vm->stack), elem2 - elem1);
-                //stack_dump(stack, "to_check", "SUB");
                 break;
             }
             case DIV:
             {
-                stack_elem_t elem1 = 0, elem2 = 0;
+                vm_div(vm);
 
-                STACK_POP(&(vm->stack), &elem1);
-                STACK_POP(&(vm->stack), &elem2);
-                STACK_PUSH(&(vm->stack), elem2 / elem1);
-
-                //stack_dump(stack, "to_check", "DIV");
                 break;
             }
             case MUL:
             {
-                stack_elem_t elem1 = 0, elem2 = 0;
+                vm_mul(vm);
 
-                STACK_POP(&(vm->stack), &elem1);
-                STACK_POP(&(vm->stack), &elem2);
-                STACK_PUSH(&(vm->stack), elem2 * elem1);
-
-                //stack_dump(stack, "to_check", "DIV");
                 break;
             }
             case POPr:
             {
-                vm->ip++;
-                registers reg = (registers)code[vm->ip];
-                stack_elem_t elem = 0;
-                STACK_POP(&(vm->stack), &elem);
+                vm_popr(vm, code);
 
-                vm->registers[reg] = elem;
                 break;
             }
             case PUSHr:
             {
-                vm->ip++;
-                registers reg = (registers)code[vm->ip];
-                STACK_PUSH(&(vm->stack), vm->registers[reg]);
+                vm_pushr(vm, code);
 
                 break;
             }
             case JMP:
             {
-                vm->ip = (size_t)code[vm->ip + 1] - 1;
+                vm_jmp(vm, code);
 
                 break;
             }
             case OUT:
             {
-                STACK_POP(&(vm->stack), &res);
-                printf("now res s equal to <" deb_spec ">\n", res);
-                getchar();
+                vm_out(vm, &res);
 
-                //stack_dump(stack, "to_check", "OUT");
                 break;
             }
             case HLT:
             {
-                STACK_DTOR(&(vm->stack), SUCCESSFUL_RETURN);
-                free(code);
+                vm_hlt(vm, code);
 
                 return res;
             }
@@ -195,12 +142,101 @@ long get_file_size(FILE *fp)
     return file_info.st_size;
 }
 
-registers get_register(const char *reg)
+error_codes vm_push(vm_t *vm, stack_elem_t *code)
 {
-    REGISTER_CMP(reg, AX);
-    REGISTER_CMP(reg, BX);
-    REGISTER_CMP(reg, CX);
-    REGISTER_CMP(reg, DX);
+    vm->ip++;
+    stack_elem_t elem = 0;
 
-    return UR;
+    elem = code[vm->ip];
+
+    STACK_PUSH(&(vm->stack), elem);
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_add(vm_t *vm)
+{
+    stack_elem_t elem1 = 0, elem2 = 0;
+
+    STACK_POP(&(vm->stack), &elem1);
+    STACK_POP(&(vm->stack), &elem2);
+    STACK_PUSH(&(vm->stack), elem1 + elem2);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_sub(vm_t *vm)
+{
+    stack_elem_t elem1 = 0, elem2 = 0;
+
+    STACK_POP(&(vm->stack), &elem1);
+    STACK_POP(&(vm->stack), &elem2);
+    STACK_PUSH(&(vm->stack), elem2 - elem1);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_div(vm_t *vm)
+{
+    stack_elem_t elem1 = 0, elem2 = 0;
+
+    STACK_POP(&(vm->stack), &elem1);
+    STACK_POP(&(vm->stack), &elem2);
+    STACK_PUSH(&(vm->stack), elem2 / elem1);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_mul(vm_t *vm)
+{
+    stack_elem_t elem1 = 0, elem2 = 0;
+
+    STACK_POP(&(vm->stack), &elem1);
+    STACK_POP(&(vm->stack), &elem2);
+    STACK_PUSH(&(vm->stack), elem2 * elem1);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_popr(vm_t *vm, stack_elem_t *code)
+{
+    vm->ip++;
+    registers reg = (registers)code[vm->ip];
+    stack_elem_t elem = 0;
+    STACK_POP(&(vm->stack), &elem);
+
+    vm->registers[reg] = elem;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_pushr(vm_t *vm, stack_elem_t *code)
+{
+    vm->ip++;
+    registers reg = (registers)code[vm->ip];
+    STACK_PUSH(&(vm->stack), vm->registers[reg]);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_jmp(vm_t *vm, stack_elem_t *code)
+{
+    vm->ip = (size_t)code[vm->ip + 1] - 1;
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_out(vm_t *vm, stack_elem_t *res)
+{
+    STACK_POP(&(vm->stack), res);
+    printf("now res s equal to <" deb_spec ">\n", *res);
+    getchar();
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_hlt(vm_t *vm, stack_elem_t *code)
+{
+    STACK_DTOR(&(vm->stack), SUCCESSFUL_RETURN);
+    free(code);
+
+    return SUCCESSFUL_RETURN;
 }
