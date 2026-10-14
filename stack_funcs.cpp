@@ -55,8 +55,9 @@ error_codes stack_push(stack_t *stack, stack_elem_t elem)
             return MEMORY_ALLOCATION_ERROR;
         )
 
-        CDO(stack->data[stack->capacity + 1] = RIGHT_CANARY;)
         stack->capacity *= 2;
+
+        CDO(stack->data[stack->capacity + 1] = RIGHT_CANARY;)
 
         poison_stack(stack->size, stack->capacity, stack);
     }
