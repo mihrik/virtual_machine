@@ -103,8 +103,8 @@ error_codes stack_pop(stack_t *stack, stack_elem_t *rtrn_val)
             return MEMORY_ALLOCATION_ERROR;
         )
 
-        CDO(stack->data[stack->capacity + 1] = RIGHT_CANARY;)
         stack->capacity /= 2;
+        CDO(stack->data[stack->capacity + 1] = RIGHT_CANARY;)
     }
 
     HDO(hash_set(stack);)
