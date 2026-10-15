@@ -8,7 +8,7 @@ OUT
 HLT
 :1
 PUSHr AX
-PUSHr 1
+PUSH 1
 JNE 2
 RET
 :2

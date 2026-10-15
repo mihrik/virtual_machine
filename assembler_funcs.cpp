@@ -32,6 +32,8 @@ error_codes ignore_comment(char line[])
     char *semicolon_ptr = NULL;
     if ((semicolon_ptr = strchr(line, ';')) != NULL)
         *semicolon_ptr = '\0';
+
+    return SUCCESSFUL_RETURN;
 }
 
 error_codes asm_push(char line[], size_t *ip, stack_elem_t buffer[])
