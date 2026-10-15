@@ -103,7 +103,7 @@ error_codes vm_pushr(vm_t *vm, stack_elem_t *code);
 error_codes vm_jmp(vm_t *vm, stack_elem_t *code);
 error_codes vm_out(vm_t *vm, stack_elem_t *res);
 error_codes vm_hlt(vm_t *vm, stack_elem_t *code);
-void ignore_comment(char line[]);
+error_codes ignore_comment(char line[]);
 error_codes asm_push(char line[], size_t *ip, stack_elem_t buffer[]);
 error_codes asm_reg_funcs(char line[], size_t *ip, stack_elem_t buffer[]);
 error_codes asm_jmp(char line[], size_t *ip, stack_elem_t buffer[], int labels[]);

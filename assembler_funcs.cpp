@@ -27,7 +27,7 @@ commands get_command(const char *command)
     return UC;
 }
 
-void ignore_comment(char line[])
+error_codes ignore_comment(char line[])
 {
     char *semicolon_ptr = NULL;
     if ((semicolon_ptr = strchr(line, ';')) != NULL)

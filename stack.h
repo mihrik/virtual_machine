@@ -35,7 +35,8 @@ typedef enum error_codes
     HASH_MEANING_CHANGED = 22,
     ENORMOUS_CAPACITY = 23,
     INVALID_QUANTITY_OF_ARGUMENTS = 24,
-    UNKNOWN_COMMAND = 25
+    UNKNOWN_COMMAND = 25,
+    REPEATED_MARK = 26
 } error_codes;
 
 #ifdef STACK_ON_DEBUG
