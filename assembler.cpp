@@ -8,13 +8,13 @@ int main(int argc, const char * const argv[])
 
     args_analysis(argc, argv, &fp_r);
 
-    stack_elem_t *code = NULL;
-    size_t ip = 0;
+    asm_t assembler = {.line = {}, .command_line = {}, .buffer = NULL, .command = CMD_UC, .ip = 0, .labels = {}};
+    asm_ctor(&assembler);
 
-    assemble(fp_r, &code, &ip);
+    assemble(fp_r, &assembler);
 
-    fwrite(code, sizeof(stack_elem_t), ip, fp_w);
-    free(code);
+    fwrite(assembler.buffer, sizeof(stack_elem_t), assembler.ip, fp_w);
+    free(assembler.buffer);
 
     return 0;
 }

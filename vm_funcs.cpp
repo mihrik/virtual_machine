@@ -20,155 +20,169 @@ error_codes args_analysis(int argc, const char * const argv[], FILE **fp)
     }
 }
 
+#define VM_JMP_CONDITIONAL_(vm, code, sign) {\
+    stack_elem_t elem1 = 0, elem2 = 0;\
+    \
+    STACK_POP(&((vm)->stack), &elem1);\
+    STACK_POP(&((vm)->stack), &elem2);\
+    if (elem2 sign elem1)\
+        vm_jmp((vm), (code));\
+    else\
+        (vm)->ip += 1;\
+}
+
+#define VM_ARITHMETIC(vm, sign) {\
+    stack_elem_t elem1 = 0, elem2 = 0;\
+    \
+    STACK_POP(&(vm->stack), &elem1);\
+    STACK_POP(&(vm->stack), &elem2);\
+    STACK_PUSH(&(vm->stack), elem2 sign elem1);\
+}
+
 stack_elem_t eval(vm_t *vm, FILE *fp)
 {
     assert(vm);
     assert(fp);
 
     stack_elem_t res = 0;
-    commands command = UC;
-
-    stack_elem_t *code = NULL;
-    code = read_text(fp);
-
-    if (code == NULL)
-    {
-        CHECK_ERROR("CODE_MEMORY_ALLOCATION_ERROR\n");
-    }
+    commands command = CMD_UC;
 
     do
     {
-        command = (commands)code[vm->ip];
+        command = (commands)(vm->code)[vm->ip];
 
         switch(command)
         {
-            case PUSH:
+            case CMD_PUSH:
             {
-                vm_push(vm, code);
+                vm_push(vm, vm->code);
 
                 break;
             }
-            case ADD:
+            case CMD_ADD:
             {
-                vm_add(vm);
+                VM_ARITHMETIC(vm, +);
 
                 break;
             }
-            case SUB:
+            case CMD_SUB:
             {
-                vm_sub(vm);
+                VM_ARITHMETIC(vm, -);
 
                 break;
             }
-            case DIV:
+            case CMD_DIV:
             {
-                vm_div(vm);
+                VM_ARITHMETIC(vm, /);
 
                 break;
             }
-            case MUL:
+            case CMD_MUL:
             {
-                vm_mul(vm);
+                VM_ARITHMETIC(vm, *);
 
                 break;
             }
-            case POPr:
+            case CMD_POPr:
             {
-                vm_popr(vm, code);
+                vm_popr(vm, vm->code);
 
                 break;
             }
-            case PUSHr:
+            case CMD_PUSHr:
             {
-                vm_pushr(vm, code);
+                vm_pushr(vm, vm->code);
 
                 break;
             }
-            case JMP:
+            case CMD_JMP:
             {
-                vm_jmp(vm, code);
+                vm_jmp(vm, vm->code);
 
                 break;
             }
-            case JA:
+            case CMD_JA:
             {
-                vm_ja(vm, code);
+                VM_JMP_CONDITIONAL_(vm, vm->code, >);
 
                 break;
             }
-            case JAE:
+            case CMD_JAE:
             {
-                vm_jae(vm, code);
+                VM_JMP_CONDITIONAL_(vm, vm->code, >=);
 
                 break;
             }
-            case JB:
+            case CMD_JB:
             {
-                vm_jb(vm, code);
+                VM_JMP_CONDITIONAL_(vm, vm->code, <);
 
                 break;
             }
-            case JBE:
+            case CMD_JBE:
             {
-                vm_jbe(vm, code);
+                VM_JMP_CONDITIONAL_(vm, vm->code, <=);
 
                 break;
             }
-            case JE:
+            case CMD_JE:
             {
-                vm_je(vm, code);
+                VM_JMP_CONDITIONAL_(vm, vm->code, ==);
 
                 break;
             }
-            case JNE:
+            case CMD_JNE:
             {
-                vm_jne(vm, code);
+                VM_JMP_CONDITIONAL_(vm, vm->code, !=);
 
                 break;
             }
-            case IN:
+            case CMD_IN:
             {
                 vm_in(vm);
 
                 break;
             }
-            case CALL:
+            case CMD_CALL:
             {
-                vm_call(vm, code);
+                vm_call(vm, vm->code);
 
                 break;
             }
-            case RET:
+            case CMD_RET:
             {
                 vm_ret(vm);
 
                 break;
             }
-            case OUT:
+            case CMD_OUT:
             {
                 vm_out(vm, &res);
 
                 break;
             }
-            case HLT:
+            case CMD_HLT:
             {
-                vm_hlt(vm, code);
+                vm_hlt(vm, vm->code);
 
                 return res;
             }
-            case UC:
-                free(code);
+            case CMD_UC:
+                free(vm->code);
 
                 return POISON;
             default:
                 exit(0);
         }
         vm->ip++;
-    } while (command != HLT);
+    } while (command != CMD_HLT);
 
-    free(code);
+    free(vm->code);
     return POISON;
 }
+
+#undef VM_ARITHMETIC
+#undef VM_JMP_CONDITIONAL
 
 stack_elem_t * read_text(FILE *fp)
 {
@@ -204,50 +218,6 @@ error_codes vm_push(vm_t *vm, stack_elem_t *code)
     elem = code[vm->ip];
 
     STACK_PUSH(&(vm->stack), elem);
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes vm_add(vm_t *vm)
-{
-    stack_elem_t elem1 = 0, elem2 = 0;
-
-    STACK_POP(&(vm->stack), &elem1);
-    STACK_POP(&(vm->stack), &elem2);
-    STACK_PUSH(&(vm->stack), elem1 + elem2);
-
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes vm_sub(vm_t *vm)
-{
-    stack_elem_t elem1 = 0, elem2 = 0;
-
-    STACK_POP(&(vm->stack), &elem1);
-    STACK_POP(&(vm->stack), &elem2);
-    STACK_PUSH(&(vm->stack), elem2 - elem1);
-
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes vm_div(vm_t *vm)
-{
-    stack_elem_t elem1 = 0, elem2 = 0;
-
-    STACK_POP(&(vm->stack), &elem1);
-    STACK_POP(&(vm->stack), &elem2);
-    STACK_PUSH(&(vm->stack), elem2 / elem1);
-
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes vm_mul(vm_t *vm)
-{
-    stack_elem_t elem1 = 0, elem2 = 0;
-
-    STACK_POP(&(vm->stack), &elem1);
-    STACK_POP(&(vm->stack), &elem2);
-    STACK_PUSH(&(vm->stack), elem2 * elem1);
-
     return SUCCESSFUL_RETURN;
 }
 
@@ -295,89 +265,6 @@ error_codes vm_hlt(vm_t *vm, stack_elem_t *code)
     return SUCCESSFUL_RETURN;
 }
 
-error_codes vm_ja(vm_t *vm, stack_elem_t *code)
-{
-    stack_elem_t elem1 = 0, elem2 = 0;
-
-    STACK_POP(&(vm->stack), &elem1);
-    STACK_POP(&(vm->stack), &elem2);
-    if (elem2 > elem1)
-        vm_jmp(vm, code);
-    else
-        vm->ip += 1;
-
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes vm_jae(vm_t *vm, stack_elem_t *code)
-{
-    stack_elem_t elem1 = 0, elem2 = 0;
-    STACK_POP(&(vm->stack), &elem1);
-    STACK_POP(&(vm->stack), &elem2);
-    if (elem2 >= elem1)
-        vm_jmp(vm, code);
-    else
-        vm->ip += 1;
-
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes vm_jb(vm_t *vm, stack_elem_t *code)
-{
-    stack_elem_t elem1 = 0, elem2 = 0;
-
-    STACK_POP(&(vm->stack), &elem1);
-    STACK_POP(&(vm->stack), &elem2);
-    if (elem2 < elem1)
-        vm_jmp(vm, code);
-    else
-        vm->ip += 1;
-
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes vm_jbe(vm_t *vm, stack_elem_t *code)
-{
-    stack_elem_t elem1 = 0, elem2 = 0;
-
-    STACK_POP(&(vm->stack), &elem1);
-    STACK_POP(&(vm->stack), &elem2);
-    if (elem2 <= elem1)
-        vm_jmp(vm, code);
-    else
-        vm->ip += 1;
-
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes vm_je(vm_t *vm, stack_elem_t *code)
-{
-    stack_elem_t elem1 = 0, elem2 = 0;
-
-    STACK_POP(&(vm->stack), &elem1);
-    STACK_POP(&(vm->stack), &elem2);
-    if (elem2 == elem1)
-        vm_jmp(vm, code);
-    else
-        vm->ip += 1;
-
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes vm_jne(vm_t *vm, stack_elem_t *code)
-{
-    stack_elem_t elem1 = 0, elem2 = 0;
-
-    STACK_POP(&(vm->stack), &elem1);
-    STACK_POP(&(vm->stack), &elem2);
-    if (elem2 != elem1)
-        vm_jmp(vm, code);
-    else
-        vm->ip += 1;
-
-    return SUCCESSFUL_RETURN;
-}
-
 error_codes vm_in(vm_t *vm)
 {
     stack_elem_t elem = 0;
@@ -403,6 +290,19 @@ error_codes vm_ret(vm_t *vm)
     STACK_POP(&(vm->funcs), &new_ip);
 
     vm->ip = (size_t)new_ip;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_ctor(vm_t *vm, FILE *fp)
+{
+    STACK_CTOR(&(vm->stack), 10, "stack", __FILE__, __func__, __LINE__);
+    STACK_CTOR(&(vm->funcs), 10, "funcs", __FILE__, __func__, __LINE__);
+
+    vm->code = read_text(fp);
+
+    if (vm->code == NULL)
+        return MEMORY_ALLOCATION_ERROR;
 
     return SUCCESSFUL_RETURN;
 }
