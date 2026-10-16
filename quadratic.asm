@@ -96,11 +96,20 @@ RET
 :7
 PUSHr BX
 PUSH 0
-JE 5
+JE 8
 PUSH 0
 PUSHr CX
 SUB; got -c
 PUSHr BX
 DIV; -c/b
+OUT
+HLT
+
+;                                       AX = BX = 0 HANDLE
+:8
+PUSHr CX
+PUSH 0
+JNE 5
+PUSH 888
 OUT
 HLT
