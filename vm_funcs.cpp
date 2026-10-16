@@ -155,6 +155,12 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
 
                 break;
             }
+            case CMD_SQRT:
+            {
+                vm_sqrt(vm);
+
+                break;
+            }
             case CMD_OUT:
             {
                 vm_out(vm, &res);
@@ -177,7 +183,7 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
         vm->ip++;
     } while (command != CMD_HLT);
 
-    free(vm->code);
+    free(vm->code); // TODO hlt huinya
     return POISON;
 }
 
@@ -290,6 +296,17 @@ error_codes vm_ret(vm_t *vm)
     STACK_POP(&(vm->funcs), &new_ip);
 
     vm->ip = (size_t)new_ip;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_sqrt(vm_t *vm)
+{
+    stack_elem_t elem = 0;
+
+    STACK_POP(&(vm->stack), &elem);
+    elem = (stack_elem_t)sqrt(elem);
+    STACK_PUSH(&(vm->stack), elem);
 
     return SUCCESSFUL_RETURN;
 }

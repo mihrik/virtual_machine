@@ -15,8 +15,6 @@ int main(int argc, const char * const argv[])
 
     stack_elem_t res = eval(&vm, fp);
 
-    printf("result is equal to " deb_spec "\n", res);
-
     fclose(fp);
 
     return 0;

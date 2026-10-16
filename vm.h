@@ -1,8 +1,8 @@
 #include "stack.h"
 #include <string.h>
 
-const int MAX_COMMAND_SIZE = 40;
-const int MAX_BUFFER_SIZE = 200;
+const int MAX_COMMAND_SIZE = 400;
+const int MAX_BUFFER_SIZE = 2000;
 
 typedef enum commands
 {
@@ -24,6 +24,7 @@ typedef enum commands
     CMD_IN = 16,
     CMD_CALL = 17,
     CMD_RET = 18,
+    CMD_SQRT = 19,
     CMD_HLT = 0xF4,
     CMD_UC= 666
 } comands;
@@ -50,7 +51,7 @@ typedef struct vm_t
     stack_t funcs;
     stack_elem_t *code;
     size_t ip;
-    stack_elem_t registers[5];
+    stack_elem_t registers[20];
 } vm_t;
 
 typedef struct asm_t
@@ -60,7 +61,7 @@ typedef struct asm_t
     stack_elem_t *buffer;
     commands command;
     size_t ip;
-    int labels[5];
+    int labels[20];
 
 } asm_t;
 
@@ -78,6 +79,11 @@ typedef struct asm_t
         assembler->labels[mark] = (int)assembler->ip;\
         continue;\
     }\
+}
+
+#define SKIP_STRING(line) {\
+    if ((line)[0] == '\0' || (line)[0] == '\n')\
+        continue;\
 }
 
 #define CHECK_COMMAND(command) {\
@@ -112,3 +118,4 @@ error_codes vm_ret(vm_t *vm);
 error_codes vm_ctor(vm_t *vm, FILE *fp);
 error_codes asm_ctor(asm_t *assembler);
 error_codes pass(FILE *fp_r, asm_t *assembler);
+error_codes vm_sqrt(vm_t *vm);

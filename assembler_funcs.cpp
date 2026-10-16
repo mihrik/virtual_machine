@@ -31,6 +31,7 @@ commands get_command(const char *command)
     COMMAND_CMP_(to_check, CMD_IN);
     COMMAND_CMP_(to_check, CMD_RET);
     COMMAND_CMP_(to_check, CMD_CALL);
+    COMMAND_CMP_(to_check, CMD_SQRT);
 
     return CMD_UC;
 }
@@ -156,15 +157,17 @@ error_codes pass(FILE *fp_r, asm_t *assembler)
 
     while (fgets(assembler->line, MAX_COMMAND_SIZE, fp_r))
     {
+        ignore_comment(assembler->line);
+
+        SKIP_STRING(assembler->line);
+
+        CHECK_MARK(assembler->line);
+
         if (sscanf(assembler->line, "%s", assembler->command_line) != 1)
         {
             printf("ABSENCE OF THE COMMAND NUMBER" " WHILE DOING %s:%d in function: %s\n", __FILE__, __LINE__, __func__);
             return INVALID_QUANTITY_OF_ARGUMENTS;
         }
-
-        ignore_comment(assembler->line);
-
-        CHECK_MARK(assembler->line);
 
         assembler->command = get_command(assembler->command_line);
         CHECK_COMMAND(assembler->command);
