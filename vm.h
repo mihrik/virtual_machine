@@ -3,6 +3,7 @@
 
 const int MAX_COMMAND_SIZE = 400;
 const int MAX_BUFFER_SIZE = 2000;
+const int RAM_SIZE = 2000;
 
 typedef enum commands
 {
@@ -25,6 +26,10 @@ typedef enum commands
     CMD_CALL = 17,
     CMD_RET = 18,
     CMD_SQRT = 19,
+    CMD_PUSHm = 20,
+    CMD_POPm = 21,
+    CMD_DRAW = 22,
+    CMD_POPmr = 23,
     CMD_HLT = 0xF4,
     CMD_UC= 666
 } comands;
@@ -36,6 +41,11 @@ typedef enum registers
     BX = 2,
     CX = 3,
     DX = 4,
+    EX = 5,
+    FX = 6,
+    GX = 7,
+    HX = 8,
+    IX = 9,
     UR = 666
 } registers;
 
@@ -50,8 +60,9 @@ typedef struct vm_t
     stack_t stack;
     stack_t funcs;
     stack_elem_t *code;
+    stack_elem_t *RAM;
     size_t ip;
-    stack_elem_t registers[20];
+    stack_elem_t registers[10];
 } vm_t;
 
 typedef struct asm_t
@@ -62,6 +73,7 @@ typedef struct asm_t
     commands command;
     size_t ip;
     int labels[20];
+
 
 } asm_t;
 
@@ -100,12 +112,12 @@ stack_elem_t eval(vm_t *stack, FILE *fp);
 stack_elem_t * read_text(FILE *fp);
 long get_file_size(FILE *fp);
 registers get_register(const char *reg);
-error_codes vm_push(vm_t *vm, stack_elem_t *code);
-error_codes vm_popr(vm_t *vm, stack_elem_t *code);
-error_codes vm_pushr(vm_t *vm, stack_elem_t *code);
-error_codes vm_jmp(vm_t *vm, stack_elem_t *code);
+error_codes vm_push(vm_t *vm);
+error_codes vm_popr(vm_t *vm);
+error_codes vm_pushr(vm_t *vm);
+error_codes vm_jmp(vm_t *vm);
 error_codes vm_out(vm_t *vm, stack_elem_t *res);
-error_codes vm_hlt(vm_t *vm, stack_elem_t *code);
+error_codes vm_hlt(vm_t *vm);
 error_codes ignore_comment(char line[]);
 error_codes asm_push(asm_t *assembler);
 error_codes asm_reg_funcs(asm_t *assembler);
@@ -113,9 +125,14 @@ error_codes asm_jmp(asm_t *assembler);
 error_codes command_analysis(asm_t *assembler);
 error_codes assemble(FILE *fp_r, asm_t *assembler);
 error_codes vm_in(vm_t *vm);
-error_codes vm_call(vm_t *vm, stack_elem_t *code);
+error_codes vm_call(vm_t *vm);
 error_codes vm_ret(vm_t *vm);
 error_codes vm_ctor(vm_t *vm, FILE *fp);
 error_codes asm_ctor(asm_t *assembler);
 error_codes pass(FILE *fp_r, asm_t *assembler);
 error_codes vm_sqrt(vm_t *vm);
+error_codes asm_ram(asm_t *assembler);
+error_codes vm_pushm(vm_t *vm);
+error_codes vm_popm(vm_t *vm);
+error_codes vm_draw(vm_t *vm);
+error_codes vm_popmr(vm_t *vm);

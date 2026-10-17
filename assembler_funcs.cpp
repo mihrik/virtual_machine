@@ -32,6 +32,10 @@ commands get_command(const char *command)
     COMMAND_CMP_(to_check, CMD_RET);
     COMMAND_CMP_(to_check, CMD_CALL);
     COMMAND_CMP_(to_check, CMD_SQRT);
+    COMMAND_CMP_(to_check, CMD_PUSHm);
+    COMMAND_CMP_(to_check, CMD_POPm);
+    COMMAND_CMP_(to_check, CMD_DRAW);
+    COMMAND_CMP_(to_check, CMD_POPmr);
 
     return CMD_UC;
 }
@@ -74,6 +78,11 @@ registers get_register(const char *reg)
     REGISTER_CMP_(reg, BX);
     REGISTER_CMP_(reg, CX);
     REGISTER_CMP_(reg, DX);
+    REGISTER_CMP_(reg, EX);
+    REGISTER_CMP_(reg, FX);
+    REGISTER_CMP_(reg, GX);
+    REGISTER_CMP_(reg, HX);
+    REGISTER_CMP_(reg, IX);
 
     return UR;
 }
@@ -115,6 +124,7 @@ error_codes command_analysis(asm_t *assembler)
                         }
         case CMD_PUSHr:
         case CMD_POPr :
+        case CMD_POPmr:
                         {
                             asm_reg_funcs(assembler);
 
@@ -130,6 +140,13 @@ error_codes command_analysis(asm_t *assembler)
         case CMD_CALL :
                         {
                             asm_jmp(assembler);
+
+                            break;
+                        }
+        case CMD_POPm :
+        case CMD_PUSHm:
+                        {
+                            asm_ram(assembler);
 
                             break;
                         }
@@ -187,6 +204,22 @@ error_codes asm_ctor(asm_t *assembler)
 
     if (assembler->buffer == NULL)
         return MEMORY_ALLOCATION_ERROR;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes asm_ram(asm_t *assembler)
+{
+    stack_elem_t elem = 0;
+
+    if (sscanf(assembler->line, "%*s" "%*c" deb_spec, &elem) != 1)
+    {
+        printf("ABSENCE OF THE SECOND PARAMETER OF PUSH" " WHILE DOING %s:%d in function: %s\n", __FILE__, __LINE__, __func__);
+        return INVALID_QUANTITY_OF_ARGUMENTS;
+    }
+
+    assembler->buffer[assembler->ip] = elem;
+    assembler->ip += 1;
 
     return SUCCESSFUL_RETURN;
 }

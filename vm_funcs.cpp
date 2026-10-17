@@ -20,13 +20,13 @@ error_codes args_analysis(int argc, const char * const argv[], FILE **fp)
     }
 }
 
-#define VM_JMP_CONDITIONAL_(vm, code, sign) {\
+#define VM_JMP_CONDITIONAL_(vm, sign) {\
     stack_elem_t elem1 = 0, elem2 = 0;\
     \
     STACK_POP(&((vm)->stack), &elem1);\
     STACK_POP(&((vm)->stack), &elem2);\
     if (elem2 sign elem1)\
-        vm_jmp((vm), (code));\
+        vm_jmp((vm));\
     else\
         (vm)->ip += 1;\
 }
@@ -55,7 +55,7 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
         {
             case CMD_PUSH:
             {
-                vm_push(vm, vm->code);
+                vm_push(vm);
 
                 break;
             }
@@ -85,55 +85,55 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
             }
             case CMD_POPr:
             {
-                vm_popr(vm, vm->code);
+                vm_popr(vm);
 
                 break;
             }
             case CMD_PUSHr:
             {
-                vm_pushr(vm, vm->code);
+                vm_pushr(vm);
 
                 break;
             }
             case CMD_JMP:
             {
-                vm_jmp(vm, vm->code);
+                vm_jmp(vm);
 
                 break;
             }
             case CMD_JA:
             {
-                VM_JMP_CONDITIONAL_(vm, vm->code, >);
+                VM_JMP_CONDITIONAL_(vm, >);
 
                 break;
             }
             case CMD_JAE:
             {
-                VM_JMP_CONDITIONAL_(vm, vm->code, >=);
+                VM_JMP_CONDITIONAL_(vm, >=);
 
                 break;
             }
             case CMD_JB:
             {
-                VM_JMP_CONDITIONAL_(vm, vm->code, <);
+                VM_JMP_CONDITIONAL_(vm, <);
 
                 break;
             }
             case CMD_JBE:
             {
-                VM_JMP_CONDITIONAL_(vm, vm->code, <=);
+                VM_JMP_CONDITIONAL_(vm, <=);
 
                 break;
             }
             case CMD_JE:
             {
-                VM_JMP_CONDITIONAL_(vm, vm->code, ==);
+                VM_JMP_CONDITIONAL_(vm, ==);
 
                 break;
             }
             case CMD_JNE:
             {
-                VM_JMP_CONDITIONAL_(vm, vm->code, !=);
+                VM_JMP_CONDITIONAL_(vm, !=);
 
                 break;
             }
@@ -145,7 +145,7 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
             }
             case CMD_CALL:
             {
-                vm_call(vm, vm->code);
+                vm_call(vm);
 
                 break;
             }
@@ -161,6 +161,30 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
 
                 break;
             }
+            case CMD_PUSHm:
+            {
+                vm_pushm(vm);
+
+                break;
+            }
+            case CMD_POPm:
+            {
+                vm_popm(vm);
+
+                break;
+            }
+            case CMD_DRAW:
+            {
+                vm_draw(vm);
+
+                break;
+            }
+            case CMD_POPmr:
+            {
+                vm_popmr(vm);
+
+                break;
+            }
             case CMD_OUT:
             {
                 vm_out(vm, &res);
@@ -169,12 +193,13 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
             }
             case CMD_HLT:
             {
-                vm_hlt(vm, vm->code);
+                vm_hlt(vm);
 
                 return res;
             }
             case CMD_UC:
                 free(vm->code);
+                free(vm->RAM);
 
                 return POISON;
             default:
@@ -183,6 +208,7 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
         vm->ip++;
     } while (command != CMD_HLT);
 
+    free(vm->RAM);
     free(vm->code); // TODO hlt huinya
     return POISON;
 }
@@ -216,21 +242,21 @@ long get_file_size(FILE *fp)
     return file_info.st_size;
 }
 
-error_codes vm_push(vm_t *vm, stack_elem_t *code)
+error_codes vm_push(vm_t *vm)
 {
     vm->ip++;
     stack_elem_t elem = 0;
 
-    elem = code[vm->ip];
+    elem = (vm->code)[vm->ip];
 
     STACK_PUSH(&(vm->stack), elem);
     return SUCCESSFUL_RETURN;
 }
 
-error_codes vm_popr(vm_t *vm, stack_elem_t *code)
+error_codes vm_popr(vm_t *vm)
 {
     vm->ip++;
-    registers reg = (registers)code[vm->ip];
+    registers reg = (registers)(vm->code)[vm->ip];
     stack_elem_t elem = 0;
     STACK_POP(&(vm->stack), &elem);
 
@@ -239,18 +265,18 @@ error_codes vm_popr(vm_t *vm, stack_elem_t *code)
     return SUCCESSFUL_RETURN;
 }
 
-error_codes vm_pushr(vm_t *vm, stack_elem_t *code)
+error_codes vm_pushr(vm_t *vm)
 {
     vm->ip++;
-    registers reg = (registers)code[vm->ip];
+    registers reg = (registers)(vm->code)[vm->ip];
     STACK_PUSH(&(vm->stack), vm->registers[reg]);
 
     return SUCCESSFUL_RETURN;
 }
 
-error_codes vm_jmp(vm_t *vm, stack_elem_t *code)
+error_codes vm_jmp(vm_t *vm)
 {
-    vm->ip = (size_t)code[vm->ip + 1] - 1;
+    vm->ip = (size_t)(vm->code)[vm->ip + 1] - 1;
     return SUCCESSFUL_RETURN;
 }
 
@@ -262,11 +288,12 @@ error_codes vm_out(vm_t *vm, stack_elem_t *res)
     return SUCCESSFUL_RETURN;
 }
 
-error_codes vm_hlt(vm_t *vm, stack_elem_t *code)
+error_codes vm_hlt(vm_t *vm)
 {
     STACK_DTOR(&(vm->stack), SUCCESSFUL_RETURN);
     STACK_DTOR(&(vm->funcs), SUCCESSFUL_RETURN);
-    free(code);
+    free(vm->code);
+    free(vm->RAM);
 
     return SUCCESSFUL_RETURN;
 }
@@ -281,10 +308,10 @@ error_codes vm_in(vm_t *vm)
     return SUCCESSFUL_RETURN;
 }
 
-error_codes vm_call(vm_t *vm, stack_elem_t *code)
+error_codes vm_call(vm_t *vm)
 {
     STACK_PUSH(&(vm->funcs), (stack_elem_t)vm->ip + 1);
-    vm_jmp(vm, code);
+    vm_jmp(vm);
 
     return SUCCESSFUL_RETURN;
 }
@@ -317,9 +344,63 @@ error_codes vm_ctor(vm_t *vm, FILE *fp)
     STACK_CTOR(&(vm->funcs), 10, "funcs", __FILE__, __func__, __LINE__);
 
     vm->code = read_text(fp);
+    vm->RAM = (stack_elem_t *) calloc(RAM_SIZE, sizeof(stack_elem_t));
 
     if (vm->code == NULL)
         return MEMORY_ALLOCATION_ERROR;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_pushm(vm_t *vm)
+{
+    vm->ip++;
+
+    STACK_PUSH(&(vm->stack), (vm->RAM)[(vm->code)[vm->ip]]);
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_popm(vm_t *vm)
+{
+    vm->ip++;
+    stack_elem_t elem = 0;
+
+    STACK_POP(&(vm->stack), &elem);
+
+    (vm->RAM)[(vm->code)[vm->ip]] = elem;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_draw(vm_t *vm)
+{
+    size_t count = 0;
+    while (vm->RAM[count] != 0)
+    {
+        count++;
+    }
+
+    size_t x = (size_t) sqrt(2 * count);
+    size_t y = x / 2 + 1;
+
+    for (size_t i = 0; i < y; i++)
+    {
+        for (size_t j = 0; j < x; j++)
+            putchar(vm->RAM[i * x + j]);
+        putchar('\n');
+    }
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_popmr(vm_t *vm)
+{
+    vm->ip++;
+
+    stack_elem_t elem = 0;
+    STACK_POP(&(vm->stack), &elem);
+
+    (vm->RAM)[vm->registers[vm->code[vm->ip]]] = elem;
 
     return SUCCESSFUL_RETURN;
 }

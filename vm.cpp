@@ -10,7 +10,7 @@ int main(int argc, const char * const argv[])
         return err;
     }
 
-    vm_t vm = {.stack = {}, .funcs = {}, .code = NULL, .ip = 0, .registers = {}};
+    vm_t vm = {.stack = {}, .funcs = {}, .code = NULL, .RAM = NULL, .ip = 0, .registers = {}};
     vm_ctor(&vm, fp);
 
     stack_elem_t res = eval(&vm, fp);
