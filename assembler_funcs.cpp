@@ -1,4 +1,5 @@
 #include "vm.h"
+#include <string.h>
 // TODO review neighbour's code and mentors
 #define COMMAND_CMP_(to_check, reference) {\
      if (strcmp(to_check, #reference) == 0)\
@@ -18,7 +19,6 @@ commands get_command(const char *command)
     COMMAND_CMP_(to_check, CMD_DIV);
     COMMAND_CMP_(to_check, CMD_OUT);
     COMMAND_CMP_(to_check, CMD_HLT);
-    COMMAND_CMP_(to_check, CMD_PUSHr);
     COMMAND_CMP_(to_check, CMD_POPr);
     COMMAND_CMP_(to_check, CMD_MUL);
     COMMAND_CMP_(to_check, CMD_JMP);
@@ -32,7 +32,6 @@ commands get_command(const char *command)
     COMMAND_CMP_(to_check, CMD_RET);
     COMMAND_CMP_(to_check, CMD_CALL);
     COMMAND_CMP_(to_check, CMD_SQRT);
-    COMMAND_CMP_(to_check, CMD_PUSHm);
     COMMAND_CMP_(to_check, CMD_POPm);
     COMMAND_CMP_(to_check, CMD_DRAW);
     COMMAND_CMP_(to_check, CMD_POPmr);
@@ -53,18 +52,68 @@ error_codes ignore_comment(char line[])
 
 error_codes asm_push(asm_t *assembler)
 {
-    stack_elem_t elem = 0;
+    char specifier[MAX_COMMAND_SIZE] = {};
+    sscanf(assembler->line, "%*s %[^\n]", specifier);
 
-    if (sscanf(assembler->line, "%*s" deb_spec, &elem) != 1)
+    if (specifier[0] == '[')
     {
-        printf("ABSENCE OF THE SECOND PARAMETER OF PUSH" " WHILE DOING %s:%d in function: %s\n", __FILE__, __LINE__, __func__);
-        return INVALID_QUANTITY_OF_ARGUMENTS;
+        char reg[MAX_COMMAND_SIZE] = {};
+        stack_elem_t elem = 0;
+        if (sscanf(specifier, "[%[A-IX]", reg) == 1)
+        {
+            stack_elem_t rnum = get_register(reg);
+            if (sscanf(specifier, "%*[^+]+ " deb_spec, &elem) == 1)
+            {
+                assembler->buffer[assembler->ip - 1] = 225;
+                assembler->buffer[assembler->ip++] = elem;
+                assembler->buffer[assembler->ip++] = rnum;
+                return SUCCESSFUL_RETURN;
+            }
+            else
+            {
+                assembler->buffer[assembler->ip - 1] = 193;
+                assembler->buffer[assembler->ip++] = rnum;
+                return SUCCESSFUL_RETURN;
+            }
+        }
+        else
+        {
+                sscanf(specifier, "[" deb_spec, &elem);
+                assembler->buffer[assembler->ip - 1] = 161;
+                assembler->buffer[assembler->ip++] = elem;
+                return SUCCESSFUL_RETURN;
+        }
+
     }
-
-    assembler->buffer[assembler->ip] = elem;
-    assembler->ip += 1;
-
-    return SUCCESSFUL_RETURN;
+    else
+    {
+        char reg[MAX_COMMAND_SIZE] = {};
+        stack_elem_t elem = 0;
+        if (sscanf(specifier, "%[A-IX]", reg) == 1)
+        {
+            stack_elem_t rnum = get_register(reg);
+            if (sscanf(specifier, "%*[^+]+ " deb_spec, &elem) == 1)
+            {
+                assembler->buffer[assembler->ip - 1] = 97;
+                assembler->buffer[assembler->ip++] = elem;
+                assembler->buffer[assembler->ip++] = rnum;
+                return SUCCESSFUL_RETURN;
+            }
+            else
+            {
+                assembler->buffer[assembler->ip - 1] = 65;
+                assembler->buffer[assembler->ip++] = rnum;
+                return SUCCESSFUL_RETURN;
+            }
+        }
+        else
+        {
+                sscanf(specifier, deb_spec, &elem);
+                assembler->buffer[assembler->ip - 1] = 33;
+                assembler->buffer[assembler->ip++] = elem;
+                return SUCCESSFUL_RETURN;
+        }
+    }
 }
 
 #define REGISTER_CMP_(to_check, reference) {\
@@ -103,10 +152,17 @@ error_codes asm_reg_funcs(asm_t *assembler)
 
 error_codes asm_jmp(asm_t *assembler)
 {
-    size_t mark = 0;
+    char name[MAX_MARK_NAME_SIZE] = {};
 
-    sscanf(assembler->line, "%*s %zu", &mark);
-    assembler->buffer[assembler->ip] = assembler->labels[mark];
+    sscanf(assembler->line, "%*s %s", name);
+    for (size_t i = 0; i < sizeof(assembler->labels) / sizeof(assembler->labels[0]); i++)
+    {
+        if (strcmp(name, assembler->labels[i].name) == 0)
+        {
+            assembler->buffer[assembler->ip] = (stack_elem_t) assembler->labels[i].new_ip;
+            break;
+        }
+    }
     assembler->ip += 1;
 
     return SUCCESSFUL_RETURN;
@@ -122,7 +178,6 @@ error_codes command_analysis(asm_t *assembler)
 
                             break;
                         }
-        case CMD_PUSHr:
         case CMD_POPr :
         case CMD_POPmr:
                         {
@@ -144,7 +199,6 @@ error_codes command_analysis(asm_t *assembler)
                             break;
                         }
         case CMD_POPm :
-        case CMD_PUSHm:
                         {
                             asm_ram(assembler);
 

@@ -4,6 +4,7 @@
 const int MAX_COMMAND_SIZE = 400;
 const int MAX_BUFFER_SIZE = 2000;
 const int RAM_SIZE = 2000;
+const int MAX_MARK_NAME_SIZE = 20;
 
 typedef enum commands
 {
@@ -13,7 +14,6 @@ typedef enum commands
     CMD_DIV = 4,
     CMD_OUT = 5,
     CMD_POPr = 6,
-    CMD_PUSHr = 7,
     CMD_MUL = 8,
     CMD_JMP = 9,
     CMD_JA = 10,
@@ -26,11 +26,10 @@ typedef enum commands
     CMD_CALL = 17,
     CMD_RET = 18,
     CMD_SQRT = 19,
-    CMD_PUSHm = 20,
     CMD_POPm = 21,
     CMD_DRAW = 22,
     CMD_POPmr = 23,
-    CMD_HLT = 0xF4,
+    CMD_HLT = 24,
     CMD_UC= 666
 } comands;
 
@@ -48,6 +47,12 @@ typedef enum registers
     IX = 9,
     UR = 666
 } registers;
+
+typedef struct mark_t
+{
+    char name[MAX_MARK_NAME_SIZE];
+    size_t new_ip;
+} mark_t;
 
 typedef struct buf_data
 {
@@ -73,7 +78,7 @@ typedef struct asm_t
     stack_elem_t *buffer;
     commands command;
     size_t ip;
-    int labels[20];
+    mark_t labels[20];
 
 
 } asm_t;
@@ -87,9 +92,15 @@ typedef struct asm_t
 #define CHECK_MARK(line) {\
     if ((line)[0] == ':')\
     {\
-        int mark = 0;\
-        sscanf((line), ":%d", &mark);\
-        assembler->labels[mark] = (int)assembler->ip;\
+        for (size_t i = 0; i < sizeof(assembler->labels) / sizeof(assembler->labels[0]); i++)\
+        {\
+            if (assembler->labels[i].name[0] == '\0')\
+            {\
+                sscanf((line), ":%s", assembler->labels[i].name);\
+                assembler->labels[i].new_ip = assembler->ip;\
+                break;\
+            }\
+        }\
         continue;\
     }\
 }
@@ -115,7 +126,6 @@ long get_file_size(FILE *fp);
 registers get_register(const char *reg);
 error_codes vm_push(vm_t *vm);
 error_codes vm_popr(vm_t *vm);
-error_codes vm_pushr(vm_t *vm);
 error_codes vm_jmp(vm_t *vm);
 error_codes vm_out(vm_t *vm, stack_elem_t *res);
 error_codes vm_hlt(vm_t *vm);
@@ -133,7 +143,6 @@ error_codes asm_ctor(asm_t *assembler);
 error_codes pass(FILE *fp_r, asm_t *assembler);
 error_codes vm_sqrt(vm_t *vm);
 error_codes asm_ram(asm_t *assembler);
-error_codes vm_pushm(vm_t *vm);
 error_codes vm_popm(vm_t *vm);
 error_codes vm_draw(vm_t *vm);
 error_codes vm_popmr(vm_t *vm);

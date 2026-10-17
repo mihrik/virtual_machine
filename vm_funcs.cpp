@@ -49,9 +49,10 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
 
     do
     {
+        assert(vm->ip < vm->code_size);
         command = (commands)(vm->code)[vm->ip];
 
-        switch(command)
+        switch(command & 0x1F)
         {
             case CMD_PUSH:
             {
@@ -86,12 +87,6 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
             case CMD_POPr:
             {
                 vm_popr(vm);
-
-                break;
-            }
-            case CMD_PUSHr:
-            {
-                vm_pushr(vm);
 
                 break;
             }
@@ -161,12 +156,6 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
 
                 break;
             }
-            case CMD_PUSHm:
-            {
-                vm_pushm(vm);
-
-                break;
-            }
             case CMD_POPm:
             {
                 vm_popm(vm);
@@ -198,6 +187,7 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
                 return res;
             }
             case CMD_UC:
+                PRINT_COLOR(EXTRA_RED, "GOT UNKNOWN COMMAND\n");
                 free(vm->code);
                 free(vm->RAM);
 
@@ -206,7 +196,7 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
                 exit(0);
         }
         vm->ip++;
-    } while (command != CMD_HLT);
+    } while ((command & 0x1F) != CMD_HLT);
 
     free(vm->RAM);
     free(vm->code); // TODO hlt huinya
@@ -245,13 +235,27 @@ long get_file_size(FILE *fp)
 
 error_codes vm_push(vm_t *vm)
 {
-    vm_dump(vm, "to_check", "push");
-    vm->ip++;
-    stack_elem_t elem = 0;
+    stack_elem_t res = 0;
+    stack_elem_t *args = vm->code + vm->ip + 1;
 
-    elem = (vm->code)[vm->ip];
+    if (vm->code[vm->ip] & 0x20)
+    {
+        res += *args;
+        args++;
+    }
+    if (vm->code[vm->ip] & 0x40)
+    {
+        res += vm->registers[*args];
+        args++;
+    }
+    if (vm->code[vm->ip] & 0x80)
+    {
+        res = vm->RAM[res];
+    }
 
-    STACK_PUSH(&(vm->stack), elem);
+    vm->ip = (size_t)(args - vm->code) - 1;
+
+    STACK_PUSH(&(vm->stack), res);
 
     return SUCCESSFUL_RETURN;
 }
@@ -264,15 +268,6 @@ error_codes vm_popr(vm_t *vm)
     STACK_POP(&(vm->stack), &elem);
 
     vm->registers[reg] = elem;
-
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes vm_pushr(vm_t *vm)
-{
-    vm->ip++;
-    registers reg = (registers)(vm->code)[vm->ip];
-    STACK_PUSH(&(vm->stack), vm->registers[reg]);
 
     return SUCCESSFUL_RETURN;
 }
@@ -352,14 +347,6 @@ error_codes vm_ctor(vm_t *vm, FILE *fp)
     if (vm->code == NULL)
         return MEMORY_ALLOCATION_ERROR;
 
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes vm_pushm(vm_t *vm)
-{
-    vm->ip++;
-
-    STACK_PUSH(&(vm->stack), (vm->RAM)[(vm->code)[vm->ip]]);
     return SUCCESSFUL_RETURN;
 }
 
