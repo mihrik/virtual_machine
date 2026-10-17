@@ -1,0 +1,25 @@
+IN
+POPr AX; set n
+CALL 1
+OUT
+HLT
+
+;                                   FACTORIAL EVALUATION
+:1
+PUSHr AX
+PUSH 1
+JNE 2
+PUSH 1
+RET
+
+:2
+PUSHr AX
+
+PUSHr AX
+PUSH 1
+SUB
+POPr AX; n--
+
+CALL 1
+MUL
+RET
