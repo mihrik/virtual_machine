@@ -8,6 +8,7 @@ int main(int argc, const char * const argv[])
 
     args_analysis(argc, argv, &fp_r);
 
+
     asm_t assembler = {.line = {}, .command_line = {}, .buffer = NULL, .command = CMD_UC, .ip = 0, .labels = {}};
     asm_ctor(&assembler);
 

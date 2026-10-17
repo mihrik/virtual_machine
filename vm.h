@@ -62,6 +62,7 @@ typedef struct vm_t
     stack_elem_t *code;
     stack_elem_t *RAM;
     size_t ip;
+    size_t code_size;
     stack_elem_t registers[10];
 } vm_t;
 
@@ -109,7 +110,7 @@ typedef struct asm_t
 error_codes args_analysis(int argc, const char * const argv[], FILE **fp);
 commands get_command(const char *command);
 stack_elem_t eval(vm_t *stack, FILE *fp);
-stack_elem_t * read_text(FILE *fp);
+stack_elem_t * read_text(FILE *fp, vm_t *vm);
 long get_file_size(FILE *fp);
 registers get_register(const char *reg);
 error_codes vm_push(vm_t *vm);
@@ -136,3 +137,4 @@ error_codes vm_pushm(vm_t *vm);
 error_codes vm_popm(vm_t *vm);
 error_codes vm_draw(vm_t *vm);
 error_codes vm_popmr(vm_t *vm);
+void vm_dump(vm_t *vm, const char *reason, const char *process);

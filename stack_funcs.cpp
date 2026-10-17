@@ -133,7 +133,6 @@ void stack_dtor(stack_t *stack, error_codes error)
 void stack_dump(stack_t *stack, const char *reason, const char *process)
 {
     ONDBG(
-        printf("\n\n\n");
         PRINT_COLOR(EXTRA_RED, "reason: %s, while doing: %s\n", reason, process);
         printf("stack_t \"%s\"[%p] created by %s at %s:%lu\n", stack->name, stack, stack->func, stack->file, stack->line);
         printf("{\n");
@@ -145,7 +144,7 @@ void stack_dump(stack_t *stack, const char *reason, const char *process)
             CDO(
             if (i == 0)
             {
-                PRINT_COLOR(PURPLE, "        canary = 0x%lX"  "\n", (size_t)stack->data[i]);
+                PRINT_COLOR(PURPLE, "        left canary = 0x%lX, reference = 0x%lX"  "\n", (size_t)stack->data[i], (size_t)LEFT_CANARY);
             }
             )
             if (i < stack->size + 1 && i > 0)
@@ -159,11 +158,10 @@ void stack_dump(stack_t *stack, const char *reason, const char *process)
             CDO(
             else if (i == stack->capacity + 1)
             {
-                PRINT_COLOR(PURPLE, "        canary = 0x%lX"  "\n", (size_t)stack->data[i]);
+                PRINT_COLOR(PURPLE, "        right canary = 0x%lX, reference = 0x%lX"  "\n", (size_t)stack->data[i], (size_t)RIGHT_CANARY);
             }
             )
         }
-        printf("}\n\n\n");
     )
 }
 

@@ -216,11 +216,12 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
 #undef VM_ARITHMETIC
 #undef VM_JMP_CONDITIONAL
 
-stack_elem_t * read_text(FILE *fp)
+stack_elem_t * read_text(FILE *fp, vm_t *vm)
 {
     assert(fp);
 
     long buf_size = get_file_size(fp) / (long)sizeof(stack_elem_t);
+    vm->code_size = (size_t) buf_size;
     stack_elem_t *buffer = (stack_elem_t *)calloc((size_t)buf_size, sizeof(stack_elem_t));
     if (buffer == NULL)
         return NULL;
@@ -244,12 +245,14 @@ long get_file_size(FILE *fp)
 
 error_codes vm_push(vm_t *vm)
 {
+    vm_dump(vm, "to_check", "push");
     vm->ip++;
     stack_elem_t elem = 0;
 
     elem = (vm->code)[vm->ip];
 
     STACK_PUSH(&(vm->stack), elem);
+
     return SUCCESSFUL_RETURN;
 }
 
@@ -343,7 +346,7 @@ error_codes vm_ctor(vm_t *vm, FILE *fp)
     STACK_CTOR(&(vm->stack), 10, "stack", __FILE__, __func__, __LINE__);
     STACK_CTOR(&(vm->funcs), 10, "funcs", __FILE__, __func__, __LINE__);
 
-    vm->code = read_text(fp);
+    vm->code = read_text(fp, vm);
     vm->RAM = (stack_elem_t *) calloc(RAM_SIZE, sizeof(stack_elem_t));
 
     if (vm->code == NULL)
@@ -403,4 +406,85 @@ error_codes vm_popmr(vm_t *vm)
     (vm->RAM)[vm->registers[vm->code[vm->ip]]] = elem;
 
     return SUCCESSFUL_RETURN;
+}
+
+void vm_dump(vm_t *vm, const char *reason, const char *process)
+{
+    ONDBG(
+        PRINT_COLOR(EXTRA_RED, "=== STACK ===\n");
+        stack_dump(&(vm->stack), reason, process);
+        putchar('\n');
+
+        PRINT_COLOR(EXTRA_RED, "=== FUNCS ===\n");
+        stack_dump(&(vm->funcs), reason, process);
+        putchar('\n');
+
+        PRINT_COLOR(EXTRA_RED, "=== BIN_CODE ===\n");
+        for (size_t i = 0; i < vm->code_size / 4; i++)
+        {
+            PRINT_COLOR(YELLOW, "[%p]:", vm->code + 4 * i);
+
+            for (size_t k = 0; k < 4; k++)
+            {
+                if (i * 4 + k == vm->ip)
+                {
+                    PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[i * 4 + k] >> 4 & 0xF, (unsigned)vm->code[i * 4 + k] & 0xF);
+                    PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[i * 4 + k] >> 20 & 0xF, (unsigned)vm->code[i * 4 + k] >> 16 & 0xF);
+                    PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[i * 4 + k] >> 12 & 0xF, (unsigned)vm->code[i * 4 + k] >> 8 & 0xF);
+                    PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[i * 4 + k] >> 28 & 0xF, (unsigned)vm->code[i * 4 + k] >> 24 & 0xF);
+                }
+                else if (k % 2 == 0)
+                {
+                    PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[i * 4 + k] >> 4 & 0xF, (unsigned)vm->code[i * 4 + k] & 0xF);
+                    PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[i * 4 + k] >> 20 & 0xF, (unsigned)vm->code[i * 4 + k] >> 16 & 0xF);
+                    PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[i * 4 + k] >> 12 & 0xF, (unsigned)vm->code[i * 4 + k] >> 8 & 0xF);
+                    PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[i * 4 + k] >> 28 & 0xF, (unsigned)vm->code[i * 4 + k] >> 24 & 0xF);
+                }
+                else
+                {
+                    PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[i * 4 + k] >> 4 & 0xF, (unsigned)vm->code[i * 4 + k] & 0xF);
+                    PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[i * 4 + k] >> 20 & 0xF, (unsigned)vm->code[i * 4 + k] >> 16 & 0xF);
+                    PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[i * 4 + k] >> 12 & 0xF, (unsigned)vm->code[i * 4 + k] >> 8 & 0xF);
+                    PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[i * 4 + k] >> 28 & 0xF, (unsigned)vm->code[i * 4 + k] >> 24 & 0xF);
+                }
+            }
+            putchar('\n');
+        }
+        if (vm->code_size > vm->code_size / 4 * 4)
+            PRINT_COLOR(YELLOW, "[%p]:", vm->code + vm->code_size / 4 * 4);
+        for (size_t k = 0; k + vm->code_size / 4 * 4 < vm->code_size; k++)
+        {
+            if (vm->code_size / 4 * 4 + k == vm->ip)
+            {
+                PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 4 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] & 0xF);
+                PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 20 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 16 & 0xF);
+                PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 12 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 8 & 0xF);
+                PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 28 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 24 & 0xF);
+            }
+            else if (k % 2 == 0)
+            {
+                PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 4 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] & 0xF);
+                PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 20 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 16 & 0xF);
+                PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 12 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 8 & 0xF);
+                PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 28 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 24 & 0xF);
+            }
+            else
+            {
+                PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 4 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] & 0xF);
+                PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 20 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 16 & 0xF);
+                PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 12 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 8 & 0xF);
+                PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 28 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 24 & 0xF);
+            }
+        }
+        putchar('\n');
+        putchar('\n');
+
+        PRINT_COLOR(EXTRA_RED, "=== REGISTERS ===\n");
+        for (size_t i = 1; i < sizeof(vm->registers) / sizeof(stack_elem_t); i++)
+        {
+            PRINT_COLOR(RED, "%c%c:", (char)(64 + i), 'X');
+            PRINT_COLOR(BLUE, " " deb_spec "\n", vm->registers[i]);
+        }
+        putchar('\n');
+    )
 }
