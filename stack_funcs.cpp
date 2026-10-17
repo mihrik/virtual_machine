@@ -162,6 +162,7 @@ void stack_dump(stack_t *stack, const char *reason, const char *process)
             }
             )
         }
+        printf("}");
     )
 }
 

@@ -55,7 +55,11 @@ error_codes asm_push(asm_t *assembler)
 {
     stack_elem_t elem = 0;
 
-
+    if (sscanf(assembler->line, "%*s" deb_spec, &elem) != 1)
+    {
+        printf("ABSENCE OF THE SECOND PARAMETER OF PUSH" " WHILE DOING %s:%d in function: %s\n", __FILE__, __LINE__, __func__);
+        return INVALID_QUANTITY_OF_ARGUMENTS;
+    }
 
     assembler->buffer[assembler->ip] = elem;
     assembler->ip += 1;

@@ -429,22 +429,22 @@ void vm_dump(vm_t *vm, const char *reason, const char *process)
                 if (i * 4 + k == vm->ip)
                 {
                     PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[i * 4 + k] >> 4 & 0xF, (unsigned)vm->code[i * 4 + k] & 0xF);
-                    PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[i * 4 + k] >> 20 & 0xF, (unsigned)vm->code[i * 4 + k] >> 16 & 0xF);
                     PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[i * 4 + k] >> 12 & 0xF, (unsigned)vm->code[i * 4 + k] >> 8 & 0xF);
+                    PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[i * 4 + k] >> 20 & 0xF, (unsigned)vm->code[i * 4 + k] >> 16 & 0xF);
                     PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[i * 4 + k] >> 28 & 0xF, (unsigned)vm->code[i * 4 + k] >> 24 & 0xF);
                 }
                 else if (k % 2 == 0)
                 {
                     PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[i * 4 + k] >> 4 & 0xF, (unsigned)vm->code[i * 4 + k] & 0xF);
-                    PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[i * 4 + k] >> 20 & 0xF, (unsigned)vm->code[i * 4 + k] >> 16 & 0xF);
                     PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[i * 4 + k] >> 12 & 0xF, (unsigned)vm->code[i * 4 + k] >> 8 & 0xF);
+                    PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[i * 4 + k] >> 20 & 0xF, (unsigned)vm->code[i * 4 + k] >> 16 & 0xF);
                     PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[i * 4 + k] >> 28 & 0xF, (unsigned)vm->code[i * 4 + k] >> 24 & 0xF);
                 }
                 else
                 {
                     PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[i * 4 + k] >> 4 & 0xF, (unsigned)vm->code[i * 4 + k] & 0xF);
-                    PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[i * 4 + k] >> 20 & 0xF, (unsigned)vm->code[i * 4 + k] >> 16 & 0xF);
                     PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[i * 4 + k] >> 12 & 0xF, (unsigned)vm->code[i * 4 + k] >> 8 & 0xF);
+                    PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[i * 4 + k] >> 20 & 0xF, (unsigned)vm->code[i * 4 + k] >> 16 & 0xF);
                     PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[i * 4 + k] >> 28 & 0xF, (unsigned)vm->code[i * 4 + k] >> 24 & 0xF);
                 }
             }
@@ -457,22 +457,22 @@ void vm_dump(vm_t *vm, const char *reason, const char *process)
             if (vm->code_size / 4 * 4 + k == vm->ip)
             {
                 PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 4 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] & 0xF);
-                PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 20 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 16 & 0xF);
                 PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 12 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 8 & 0xF);
+                PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 20 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 16 & 0xF);
                 PRINT_COLOR(YELLOW, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 28 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 24 & 0xF);
             }
             else if (k % 2 == 0)
             {
                 PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 4 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] & 0xF);
-                PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 20 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 16 & 0xF);
                 PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 12 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 8 & 0xF);
+                PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 20 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 16 & 0xF);
                 PRINT_COLOR(BLUE, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 28 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 24 & 0xF);
             }
             else
             {
                 PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 4 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] & 0xF);
-                PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 20 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 16 & 0xF);
                 PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 12 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 8 & 0xF);
+                PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 20 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 16 & 0xF);
                 PRINT_COLOR(RED, " %X%X", (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 28 & 0xF, (unsigned)vm->code[vm->code_size / 4 * 4 + k] >> 24 & 0xF);
             }
         }
