@@ -5,7 +5,8 @@
 const int MAX_COMMAND_SIZE = 400;
 const int MAX_BUFFER_SIZE = 2000;
 const int MAX_MARK_NAME_SIZE = 20;
-const int MAX_NAME_LEN = 10;
+const int MAX_COMMAND_NAME_LEN = 10;
+const int MAX_REGISTER_NAME_LEN = 3;
 
 #define MODE_MRK 225
 #define MODE_MR 193
@@ -34,8 +35,15 @@ typedef struct command_hash
 {
     commands cnum;
     size_t hash;
-    char name[MAX_NAME_LEN];
+    char name[MAX_COMMAND_NAME_LEN];
 } command_hash;
+
+typedef struct register_hash
+{
+    registers rnum;
+    size_t hash;
+    char name[MAX_REGISTER_NAME_LEN];
+} register_hash;
 
 #define CHECK_ERROR(message) {\
     PRINT_COLOR(EXTRA_RED, #message " WHILE DOING %s:%d in function: %s", __FILE__, __LINE__, __func__);\
@@ -77,7 +85,7 @@ typedef struct command_hash
 }
 
 #define PUSH_KONST_AND_REG(command) {\
-    two_arguments(assembler, rnum, elem, (command));\
+    two_arguments(assembler, elem, rnum, (command));\
 }
 
 #define PUSH_REG(command) {\
@@ -100,6 +108,7 @@ error_codes one_argument(asm_t *assembler, stack_elem_t rnum, stack_elem_t comma
 error_codes memory_off_push(asm_t *assembler, char specifier[]);
 error_codes memory_on_push(asm_t *assembler, char specifier[]);
 size_t djb2_for_asm(const char name[]);
-size_t binary_search(size_t hash);
+size_t cmd_binary_search(size_t hash);
+size_t reg_binary_search(size_t hash);
 
 #endif

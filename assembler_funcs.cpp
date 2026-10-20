@@ -2,7 +2,7 @@
 #include <string.h>
 // TODO review neighbour's code and mentors
 
-command_hash hashes[] =
+command_hash cmd_hashes[] =
 {
     {.cnum = CMD_CALL, .hash = 49, .name = "CALL"},
     {.cnum = CMD_ADD, .hash = 94, .name = "ADD"},
@@ -25,7 +25,20 @@ command_hash hashes[] =
     {.cnum = CMD_JAE, .hash = 797, .name = "JAE"},
     {.cnum = CMD_JBE, .hash = 830, .name = "JBE"},
     {.cnum = CMD_OUT, .hash = 917, .name = "OUT"},
-    {.cnum = CMD_HLT, .hash = 997, .name = "HLT"},
+    {.cnum = CMD_HLT, .hash = 997, .name = "HLT"}
+};
+
+register_hash r_hashes[]=
+{
+    {.rnum = AX, .hash = 142, .name = "AX"},
+    {.rnum = BX, .hash = 175, .name = "BX"},
+    {.rnum = CX, .hash = 208, .name = "CX"},
+    {.rnum = DX, .hash = 241, .name = "DX"},
+    {.rnum = EX, .hash = 274, .name = "EX"},
+    {.rnum = FX, .hash = 307, .name = "FX"},
+    {.rnum = GX, .hash = 340, .name = "GX"},
+    {.rnum = HX, .hash = 373, .name = "HX"},
+    {.rnum = IX, .hash = 406, .name = "IX"}
 };
 
 error_codes ignore_comment(char line[])
@@ -53,28 +66,6 @@ error_codes asm_push(asm_t *assembler)
 
     return SUCCESSFUL_RETURN;
 }
-
-#define REGISTER_CMP_(to_check, reference) {\
-     if (strcmp(to_check, #reference) == 0)\
-        return reference;\
-}
-
-registers get_register(const char *reg)
-{
-    REGISTER_CMP_(reg, AX);
-    REGISTER_CMP_(reg, BX);
-    REGISTER_CMP_(reg, CX);
-    REGISTER_CMP_(reg, DX);
-    REGISTER_CMP_(reg, EX);
-    REGISTER_CMP_(reg, FX);
-    REGISTER_CMP_(reg, GX);
-    REGISTER_CMP_(reg, HX);
-    REGISTER_CMP_(reg, IX);
-
-    return UR;
-}
-
-#undef REGISTER_CMP_
 
 error_codes asm_reg_funcs(asm_t *assembler)
 {
@@ -281,7 +272,7 @@ error_codes memory_on_push(asm_t *assembler, char specifier[])
     }
     else
     {
-        sscanf(specifier, deb_spec, &elem);
+        sscanf(specifier, "[" deb_spec, &elem);
         PUSH_KONST(MODE_MK);
         return SUCCESSFUL_RETURN;
     }
@@ -293,7 +284,7 @@ size_t djb2_for_asm(const char name[])
 {
     size_t sum = 5381;
 
-    for (size_t i = 0; i < MAX_NAME_LEN && name[i]; i++)
+    for (size_t i = 0; i < MAX_COMMAND_NAME_LEN && name[i]; i++)
     {
         sum = sum * 33 + (size_t)name[i];
     }
@@ -305,23 +296,23 @@ commands get_command(const char *command)
 {
     size_t hash = djb2_for_asm(command);
 
-    size_t index = binary_search(hash);
-    if (strcmp(command, hashes[index].name) == 0)
+    size_t index = cmd_binary_search(hash);
+    if (strcmp(command, cmd_hashes[index].name) == 0)
     {
-        return hashes[index].cnum;
+        return cmd_hashes[index].cnum;
     }
 
     return CMD_UC;
 }
 
-size_t binary_search(size_t hash)
+size_t cmd_binary_search(size_t hash)
 {
-    size_t l = 0, r = sizeof(hashes) / sizeof(hashes[0]) - 1;
+    size_t l = 0, r = sizeof(cmd_hashes) / sizeof(cmd_hashes[0]) - 1;
     size_t mid = l + (r - l) / 2;
 
     while (l < r)
     {
-        if (hash <= hashes[mid].hash)
+        if (hash <= cmd_hashes[mid].hash)
         {
             r = mid;
         }
@@ -334,4 +325,39 @@ size_t binary_search(size_t hash)
     }
 
     return r;
+}
+
+size_t reg_binary_search(size_t hash)
+{
+    size_t l = 0, r = sizeof(r_hashes) / sizeof(r_hashes[0]) - 1;
+    size_t mid = l + (r - l) / 2;
+
+    while (l < r)
+    {
+        if (hash <= r_hashes[mid].hash)
+        {
+            r = mid;
+        }
+        else
+        {
+            l = mid + 1;
+        }
+
+        mid = l + (r - l) / 2;
+    }
+
+    return r;
+}
+
+registers get_register(const char *reg)
+{
+    size_t hash = djb2_for_asm(reg);
+
+    size_t index = reg_binary_search(hash);
+    if (strcmp(reg, r_hashes[index].name) == 0)
+    {
+        return r_hashes[index].rnum;
+    }
+
+    return UR;
 }

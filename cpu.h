@@ -41,7 +41,7 @@ typedef enum registers
     GX = 7,
     HX = 8,
     IX = 9,
-    UR = 666
+    UR = 12
 } registers;
 
 error_codes args_analysis(int argc, const char * const argv[], FILE **fp);
