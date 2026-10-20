@@ -8,7 +8,7 @@ PUSH 1
 ADD; got m / 2 + 1
 POPr BX
 CALL EVAL
-; TODO
+;
 DRAW
 HLT
 

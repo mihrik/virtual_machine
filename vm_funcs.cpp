@@ -4,6 +4,33 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+error_codes (*to_execute[])(vm_t *vm) =
+{
+    vm_uc,
+    vm_push,
+    vm_add,
+    vm_sub,
+    vm_div,
+    vm_out,
+    vm_popr,
+    vm_mul,
+    vm_jmp,
+    vm_ja,
+    vm_jae,
+    vm_jb,
+    vm_jbe,
+    vm_je,
+    vm_jne,
+    vm_in,
+    vm_call,
+    vm_ret,
+    vm_sqrt,
+    vm_popm,
+    vm_draw,
+    vm_popmr,
+    vm_hlt
+};
+
 error_codes args_analysis(int argc, const char * const argv[], FILE **fp)
 {
     assert(argv);
@@ -20,31 +47,11 @@ error_codes args_analysis(int argc, const char * const argv[], FILE **fp)
     }
 }
 
-#define VM_JMP_CONDITIONAL_(vm, sign) {\
-    stack_elem_t elem1 = 0, elem2 = 0;\
-    \
-    STACK_POP(&((vm)->stack), &elem1);\
-    STACK_POP(&((vm)->stack), &elem2);\
-    if (elem2 sign elem1)\
-        vm_jmp((vm));\
-    else\
-        (vm)->ip += 1;\
-}
-
-#define VM_ARITHMETIC(vm, sign) {\
-    stack_elem_t elem1 = 0, elem2 = 0;\
-    \
-    STACK_POP(&(vm->stack), &elem1);\
-    STACK_POP(&(vm->stack), &elem2);\
-    STACK_PUSH(&(vm->stack), elem2 sign elem1);\
-}
-
-stack_elem_t eval(vm_t *vm, FILE *fp)
+error_codes eval(vm_t *vm, FILE *fp)
 {
     assert(vm);
     assert(fp);
 
-    stack_elem_t res = 0;
     commands command = CMD_UC;
 
     do
@@ -52,159 +59,13 @@ stack_elem_t eval(vm_t *vm, FILE *fp)
         assert(vm->ip < vm->code_size);
         command = (commands)(vm->code)[vm->ip];
 
-        switch(command & 0x1F)
-        {
-            case CMD_PUSH:
-            {
-                vm_push(vm);
+        to_execute[(command) & 0x1F](vm);
 
-                break;
-            }
-            case CMD_ADD:
-            {
-                VM_ARITHMETIC(vm, +);
-
-                break;
-            }
-            case CMD_SUB:
-            {
-                VM_ARITHMETIC(vm, -);
-
-                break;
-            }
-            case CMD_DIV:
-            {
-                VM_ARITHMETIC(vm, /);
-
-                break;
-            }
-            case CMD_MUL:
-            {
-                VM_ARITHMETIC(vm, *);
-
-                break;
-            }
-            case CMD_POPr:
-            {
-                vm_popr(vm);
-
-                break;
-            }
-            case CMD_JMP:
-            {
-                vm_jmp(vm);
-
-                break;
-            }
-            case CMD_JA:
-            {
-                VM_JMP_CONDITIONAL_(vm, >);
-
-                break;
-            }
-            case CMD_JAE:
-            {
-                VM_JMP_CONDITIONAL_(vm, >=);
-
-                break;
-            }
-            case CMD_JB:
-            {
-                VM_JMP_CONDITIONAL_(vm, <);
-
-                break;
-            }
-            case CMD_JBE:
-            {
-                VM_JMP_CONDITIONAL_(vm, <=);
-
-                break;
-            }
-            case CMD_JE:
-            {
-                VM_JMP_CONDITIONAL_(vm, ==);
-
-                break;
-            }
-            case CMD_JNE:
-            {
-                VM_JMP_CONDITIONAL_(vm, !=);
-
-                break;
-            }
-            case CMD_IN:
-            {
-                vm_in(vm);
-
-                break;
-            }
-            case CMD_CALL:
-            {
-                vm_call(vm);
-
-                break;
-            }
-            case CMD_RET:
-            {
-                vm_ret(vm);
-
-                break;
-            }
-            case CMD_SQRT:
-            {
-                vm_sqrt(vm);
-
-                break;
-            }
-            case CMD_POPm:
-            {
-                vm_popm(vm);
-
-                break;
-            }
-            case CMD_DRAW:
-            {
-                vm_draw(vm);
-
-                break;
-            }
-            case CMD_POPmr:
-            {
-                vm_popmr(vm);
-
-                break;
-            }
-            case CMD_OUT:
-            {
-                vm_out(vm, &res);
-
-                break;
-            }
-            case CMD_HLT:
-            {
-                vm_hlt(vm);
-
-                return res;
-            }
-            case CMD_UC:
-                PRINT_COLOR(EXTRA_RED, "GOT UNKNOWN COMMAND\n");
-                free(vm->code);
-                free(vm->RAM);
-
-                return POISON;
-            default:
-                exit(0);
-        }
         vm->ip++;
     } while ((command & 0x1F) != CMD_HLT);
 
-    free(vm->RAM);
-    free(vm->code); // TODO hlt huinya
-    return POISON;
+    return UNKNOWN_COMMAND;
 }
-
-#undef VM_ARITHMETIC
-#undef VM_JMP_CONDITIONAL
 
 stack_elem_t * read_text(FILE *fp, vm_t *vm)
 {
@@ -278,10 +139,12 @@ error_codes vm_jmp(vm_t *vm)
     return SUCCESSFUL_RETURN;
 }
 
-error_codes vm_out(vm_t *vm, stack_elem_t *res)
+error_codes vm_out(vm_t *vm)
 {
-    STACK_POP(&(vm->stack), res);
-    printf("now res s equal to <" deb_spec ">\n", *res);
+    stack_elem_t res = 0;
+
+    STACK_POP(&(vm->stack), &res);
+    printf("now res s equal to <" deb_spec ">\n", res);
 
     return SUCCESSFUL_RETURN;
 }
@@ -290,8 +153,7 @@ error_codes vm_hlt(vm_t *vm)
 {
     STACK_DTOR(&(vm->stack), SUCCESSFUL_RETURN);
     STACK_DTOR(&(vm->funcs), SUCCESSFUL_RETURN);
-    free(vm->code);
-    free(vm->RAM);
+    free_vm(vm);
 
     return SUCCESSFUL_RETURN;
 }
@@ -474,4 +336,87 @@ void vm_dump(vm_t *vm, const char *reason, const char *process)
         }
         putchar('\n');
     )
+}
+
+error_codes free_vm(vm_t *vm)
+{
+    free(vm->RAM);
+    free(vm->code);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_add(vm_t *vm)
+{
+    VM_ARITHMETIC(vm, +);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_sub(vm_t *vm)
+{
+    VM_ARITHMETIC(vm, -);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_div(vm_t *vm)
+{
+    VM_ARITHMETIC(vm, /);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_mul(vm_t *vm)
+{
+    VM_ARITHMETIC(vm, *);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_uc(vm_t *vm)
+{
+    return UNKNOWN_COMMAND;
+}
+
+error_codes vm_ja(vm_t *vm)
+{
+    VM_JMP_CONDITIONAL(vm, >);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_jae(vm_t *vm)
+{
+    VM_JMP_CONDITIONAL(vm, >=);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_jb(vm_t *vm)
+{
+    VM_JMP_CONDITIONAL(vm, <);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_jbe(vm_t *vm)
+{
+    VM_JMP_CONDITIONAL(vm, <=);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_je(vm_t *vm)
+{
+    VM_JMP_CONDITIONAL(vm, ==);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_jne(vm_t *vm)
+{
+    VM_JMP_CONDITIONAL(vm, !=);
+
+    return SUCCESSFUL_RETURN;
 }

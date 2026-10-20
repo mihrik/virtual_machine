@@ -1,45 +1,32 @@
-#include "vm.h"
+#include "assembler.h"
 #include <string.h>
 // TODO review neighbour's code and mentors
-#define COMMAND_CMP_(to_check, reference) {\
-     if (strcmp(to_check, #reference) == 0)\
-        return reference;\
-}
 
-commands get_command(const char *command)
+command_hash hashes[] =
 {
-    assert(command);
-
-    char to_check[MAX_COMMAND_SIZE * 2] = "CMD_";
-    strncat(to_check, command, MAX_COMMAND_SIZE);
-
-    COMMAND_CMP_(to_check, CMD_PUSH);
-    COMMAND_CMP_(to_check, CMD_ADD);
-    COMMAND_CMP_(to_check, CMD_SUB);
-    COMMAND_CMP_(to_check, CMD_DIV);
-    COMMAND_CMP_(to_check, CMD_OUT);
-    COMMAND_CMP_(to_check, CMD_HLT);
-    COMMAND_CMP_(to_check, CMD_POPr);
-    COMMAND_CMP_(to_check, CMD_MUL);
-    COMMAND_CMP_(to_check, CMD_JMP);
-    COMMAND_CMP_(to_check, CMD_JA);
-    COMMAND_CMP_(to_check, CMD_JAE);
-    COMMAND_CMP_(to_check, CMD_JB);
-    COMMAND_CMP_(to_check, CMD_JBE);
-    COMMAND_CMP_(to_check, CMD_JE);
-    COMMAND_CMP_(to_check, CMD_JNE);
-    COMMAND_CMP_(to_check, CMD_IN);
-    COMMAND_CMP_(to_check, CMD_RET);
-    COMMAND_CMP_(to_check, CMD_CALL);
-    COMMAND_CMP_(to_check, CMD_SQRT);
-    COMMAND_CMP_(to_check, CMD_POPm);
-    COMMAND_CMP_(to_check, CMD_DRAW);
-    COMMAND_CMP_(to_check, CMD_POPmr);
-
-    return CMD_UC;
-}
-
-#undef COMMAND_CMP_
+    {.cnum = CMD_CALL, .hash = 49, .name = "CALL"},
+    {.cnum = CMD_ADD, .hash = 94, .name = "ADD"},
+    {.cnum = CMD_DRAW, .hash = 147, .name = "DRAW"},
+    {.cnum = CMD_JMP, .hash = 204, .name = "JMP"},
+    {.cnum = CMD_JNE, .hash = 226, .name = "JNE"},
+    {.cnum = CMD_PUSH, .hash = 237, .name = "PUSH"},
+    {.cnum = CMD_SUB, .hash = 255, .name = "SUB"},
+    {.cnum = CMD_POPmr, .hash = 267, .name = "POPmr"},
+    {.cnum = CMD_IN, .hash = 396, .name = "IN"},
+    {.cnum = CMD_JA, .hash = 416, .name = "JA"},
+    {.cnum = CMD_JB, .hash = 417, .name = "JB"},
+    {.cnum = CMD_JE, .hash = 420, .name = "JE"},
+    {.cnum = CMD_DIV, .hash = 544, .name = "DIV"},
+    {.cnum = CMD_POPm, .hash = 641, .name = "POPm"},
+    {.cnum = CMD_POPr, .hash = 646, .name = "POPr"},
+    {.cnum = CMD_RET, .hash = 656, .name = "RET"},
+    {.cnum = CMD_SQRT, .hash = 671, .name = "SQRT"},
+    {.cnum = CMD_MUL, .hash = 731, .name = "MUL"},
+    {.cnum = CMD_JAE, .hash = 797, .name = "JAE"},
+    {.cnum = CMD_JBE, .hash = 830, .name = "JBE"},
+    {.cnum = CMD_OUT, .hash = 917, .name = "OUT"},
+    {.cnum = CMD_HLT, .hash = 997, .name = "HLT"},
+};
 
 error_codes ignore_comment(char line[])
 {
@@ -57,63 +44,14 @@ error_codes asm_push(asm_t *assembler)
 
     if (specifier[0] == '[')
     {
-        char reg[MAX_COMMAND_SIZE] = {};
-        stack_elem_t elem = 0;
-        if (sscanf(specifier, "[%[A-IX]", reg) == 1)
-        {
-            stack_elem_t rnum = get_register(reg);
-            if (sscanf(specifier, "%*[^+]+ " deb_spec, &elem) == 1)
-            {
-                assembler->buffer[assembler->ip - 1] = 225;
-                assembler->buffer[assembler->ip++] = elem;
-                assembler->buffer[assembler->ip++] = rnum;
-                return SUCCESSFUL_RETURN;
-            }
-            else
-            {
-                assembler->buffer[assembler->ip - 1] = 193;
-                assembler->buffer[assembler->ip++] = rnum;
-                return SUCCESSFUL_RETURN;
-            }
-        }
-        else
-        {
-                sscanf(specifier, "[" deb_spec, &elem);
-                assembler->buffer[assembler->ip - 1] = 161;
-                assembler->buffer[assembler->ip++] = elem;
-                return SUCCESSFUL_RETURN;
-        }
-
+        memory_on_push(assembler, specifier);
     }
     else
     {
-        char reg[MAX_COMMAND_SIZE] = {};
-        stack_elem_t elem = 0;
-        if (sscanf(specifier, "%[A-IX]", reg) == 1)
-        {
-            stack_elem_t rnum = get_register(reg);
-            if (sscanf(specifier, "%*[^+]+ " deb_spec, &elem) == 1)
-            {
-                assembler->buffer[assembler->ip - 1] = 97;
-                assembler->buffer[assembler->ip++] = elem;
-                assembler->buffer[assembler->ip++] = rnum;
-                return SUCCESSFUL_RETURN;
-            }
-            else
-            {
-                assembler->buffer[assembler->ip - 1] = 65;
-                assembler->buffer[assembler->ip++] = rnum;
-                return SUCCESSFUL_RETURN;
-            }
-        }
-        else
-        {
-                sscanf(specifier, deb_spec, &elem);
-                assembler->buffer[assembler->ip - 1] = 33;
-                assembler->buffer[assembler->ip++] = elem;
-                return SUCCESSFUL_RETURN;
-        }
+        memory_off_push(assembler, specifier);
     }
+
+    return SUCCESSFUL_RETURN;
 }
 
 #define REGISTER_CMP_(to_check, reference) {\
@@ -276,4 +214,124 @@ error_codes asm_ram(asm_t *assembler)
     assembler->ip += 1;
 
     return SUCCESSFUL_RETURN;
+}
+
+error_codes two_arguments(asm_t *assembler, stack_elem_t elem, stack_elem_t rnum, stack_elem_t command)
+{
+    assembler->buffer[assembler->ip - 1] = command;
+    assembler->buffer[assembler->ip++] = elem;
+    assembler->buffer[assembler->ip++] = rnum;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes one_argument(asm_t *assembler, stack_elem_t argument, stack_elem_t command)
+{
+    assembler->buffer[assembler->ip - 1] = command;
+    assembler->buffer[assembler->ip++] = argument;
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes memory_off_push(asm_t *assembler, char specifier[])
+{
+    char reg[MAX_COMMAND_SIZE] = {};
+    stack_elem_t elem = 0;
+    if (sscanf(specifier, "%[A-IX]", reg) == 1)
+    {
+        stack_elem_t rnum = get_register(reg);
+        if (sscanf(specifier, "%*[^+]+ " deb_spec, &elem) == 1)
+        {
+            PUSH_KONST_AND_REG(MODE_RK);
+            return SUCCESSFUL_RETURN;
+        }
+        else
+        {
+            PUSH_REG(MODE_R);
+            return SUCCESSFUL_RETURN;
+        }
+    }
+    else
+    {
+            sscanf(specifier, deb_spec, &elem);
+            PUSH_KONST(MODE_K);
+            return SUCCESSFUL_RETURN;
+    }
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes memory_on_push(asm_t *assembler, char specifier[])
+{
+    char reg[MAX_COMMAND_SIZE] = {};
+    stack_elem_t elem = 0;
+    if (sscanf(specifier, "[%[A-IX]", reg) == 1)
+    {
+        stack_elem_t rnum = get_register(reg);
+        if (sscanf(specifier, "%*[^+]+ " deb_spec, &elem) == 1)
+        {
+            PUSH_KONST_AND_REG(MODE_MRK);
+            return SUCCESSFUL_RETURN;
+        }
+        else
+        {
+            PUSH_REG(MODE_MR);
+            return SUCCESSFUL_RETURN;
+        }
+    }
+    else
+    {
+        sscanf(specifier, deb_spec, &elem);
+        PUSH_KONST(MODE_MK);
+        return SUCCESSFUL_RETURN;
+    }
+
+    return SUCCESSFUL_RETURN;
+}
+
+size_t djb2_for_asm(const char name[])
+{
+    size_t sum = 5381;
+
+    for (size_t i = 0; i < MAX_NAME_LEN && name[i]; i++)
+    {
+        sum = sum * 33 + (size_t)name[i];
+    }
+
+    return sum % 1000;
+}
+
+commands get_command(const char *command)
+{
+    size_t hash = djb2_for_asm(command);
+
+    size_t index = binary_search(hash);
+    if (strcmp(command, hashes[index].name) == 0)
+    {
+        return hashes[index].cnum;
+    }
+
+    return CMD_UC;
+}
+
+size_t binary_search(size_t hash)
+{
+    size_t l = 0, r = sizeof(hashes) / sizeof(hashes[0]) - 1;
+    size_t mid = l + (r - l) / 2;
+
+    while (l < r)
+    {
+        if (hash <= hashes[mid].hash)
+        {
+            r = mid;
+        }
+        else
+        {
+            l = mid + 1;
+        }
+
+        mid = l + (r - l) / 2;
+    }
+
+    return r;
 }

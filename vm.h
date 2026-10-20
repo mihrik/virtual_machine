@@ -1,58 +1,9 @@
-#include "stack.h"
+#ifndef VM_H
+#define VM_H
 #include <string.h>
+#include "cpu.h"
 
-const int MAX_COMMAND_SIZE = 400;
-const int MAX_BUFFER_SIZE = 2000;
 const int RAM_SIZE = 2000;
-const int MAX_MARK_NAME_SIZE = 20;
-
-typedef enum commands
-{
-    CMD_PUSH = 1,
-    CMD_ADD = 2,
-    CMD_SUB = 3,
-    CMD_DIV = 4,
-    CMD_OUT = 5,
-    CMD_POPr = 6,
-    CMD_MUL = 8,
-    CMD_JMP = 9,
-    CMD_JA = 10,
-    CMD_JAE = 11,
-    CMD_JB = 12,
-    CMD_JBE = 13,
-    CMD_JE = 14,
-    CMD_JNE = 15,
-    CMD_IN = 16,
-    CMD_CALL = 17,
-    CMD_RET = 18,
-    CMD_SQRT = 19,
-    CMD_POPm = 21,
-    CMD_DRAW = 22,
-    CMD_POPmr = 23,
-    CMD_HLT = 24,
-    CMD_UC= 666
-} comands;
-
-
-typedef enum registers
-{
-    AX = 1,
-    BX = 2,
-    CX = 3,
-    DX = 4,
-    EX = 5,
-    FX = 6,
-    GX = 7,
-    HX = 8,
-    IX = 9,
-    UR = 666
-} registers;
-
-typedef struct mark_t
-{
-    char name[MAX_MARK_NAME_SIZE];
-    size_t new_ip;
-} mark_t;
 
 typedef struct buf_data
 {
@@ -71,79 +22,53 @@ typedef struct vm_t
     stack_elem_t registers[10];
 } vm_t;
 
-typedef struct asm_t
-{
-    char line[MAX_COMMAND_SIZE];
-    char command_line[MAX_COMMAND_SIZE];
-    stack_elem_t *buffer;
-    commands command;
-    size_t ip;
-    mark_t labels[20];
-
-
-} asm_t;
-
-#define CHECK_ERROR(message) {\
-    PRINT_COLOR(EXTRA_RED, #message " WHILE DOING %s:%d in function: %s", __FILE__, __LINE__, __func__);\
-    free(code);\
-    return POISON;\
+#define VM_JMP_CONDITIONAL(vm, sign) {\
+    stack_elem_t elem1 = 0, elem2 = 0;\
+    \
+    STACK_POP(&((vm)->stack), &elem1);\
+    STACK_POP(&((vm)->stack), &elem2);\
+    if (elem2 sign elem1)\
+        vm_jmp((vm));\
+    else\
+        (vm)->ip += 1;\
 }
 
-#define CHECK_MARK(line) {\
-    if ((line)[0] == ':')\
-    {\
-        for (size_t i = 0; i < sizeof(assembler->labels) / sizeof(assembler->labels[0]); i++)\
-        {\
-            if (assembler->labels[i].name[0] == '\0')\
-            {\
-                sscanf((line), ":%s", assembler->labels[i].name);\
-                assembler->labels[i].new_ip = assembler->ip;\
-                break;\
-            }\
-        }\
-        continue;\
-    }\
+#define VM_ARITHMETIC(vm, sign) {\
+    stack_elem_t elem1 = 0, elem2 = 0;\
+    \
+    STACK_POP(&(vm->stack), &elem1);\
+    STACK_POP(&(vm->stack), &elem2);\
+    STACK_PUSH(&(vm->stack), elem2 sign elem1);\
 }
 
-#define SKIP_STRING(line) {\
-    if ((line)[0] == '\0' || (line)[0] == '\n')\
-        continue;\
-}
-
-#define CHECK_COMMAND(command) {\
-    if ((command) == CMD_UC)\
-    {\
-        printf("GOT_UNKNOWN_COMMAND: %s, WHILE DOING: %s:%d in function: %s\n", assembler->command_line, __FILE__, __LINE__, __func__);\
-        return UNKNOWN_COMMAND;\
-    }\
-}
-
-error_codes args_analysis(int argc, const char * const argv[], FILE **fp);
-commands get_command(const char *command);
-stack_elem_t eval(vm_t *stack, FILE *fp);
+error_codes eval(vm_t *stack, FILE *fp);
 stack_elem_t * read_text(FILE *fp, vm_t *vm);
 long get_file_size(FILE *fp);
-registers get_register(const char *reg);
 error_codes vm_push(vm_t *vm);
 error_codes vm_popr(vm_t *vm);
 error_codes vm_jmp(vm_t *vm);
-error_codes vm_out(vm_t *vm, stack_elem_t *res);
+error_codes vm_out(vm_t *vm);
 error_codes vm_hlt(vm_t *vm);
-error_codes ignore_comment(char line[]);
-error_codes asm_push(asm_t *assembler);
-error_codes asm_reg_funcs(asm_t *assembler);
-error_codes asm_jmp(asm_t *assembler);
-error_codes command_analysis(asm_t *assembler);
-error_codes assemble(FILE *fp_r, asm_t *assembler);
 error_codes vm_in(vm_t *vm);
 error_codes vm_call(vm_t *vm);
 error_codes vm_ret(vm_t *vm);
 error_codes vm_ctor(vm_t *vm, FILE *fp);
-error_codes asm_ctor(asm_t *assembler);
-error_codes pass(FILE *fp_r, asm_t *assembler);
 error_codes vm_sqrt(vm_t *vm);
-error_codes asm_ram(asm_t *assembler);
 error_codes vm_popm(vm_t *vm);
 error_codes vm_draw(vm_t *vm);
 error_codes vm_popmr(vm_t *vm);
 void vm_dump(vm_t *vm, const char *reason, const char *process);
+error_codes free_vm(vm_t *vm);
+error_codes vm_add(vm_t *vm);
+error_codes vm_sub(vm_t *vm);
+error_codes vm_mul(vm_t *vm);
+error_codes vm_div(vm_t *vm);
+error_codes vm_uc(vm_t *vm);
+error_codes vm_ja(vm_t *vm);
+error_codes vm_jae(vm_t *vm);
+error_codes vm_jb(vm_t *vm);
+error_codes vm_jbe(vm_t *vm);
+error_codes vm_je(vm_t *vm);
+error_codes vm_jne(vm_t *vm);
+
+#endif

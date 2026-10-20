@@ -1,3 +1,6 @@
+#ifndef COLORS_H
+#define COLORS_H
+
 #define RED "\033[91m"
 #define EXTRA_RED "\033[31m"
 #define GREEN "\033[92m"
@@ -15,3 +18,5 @@
     printf(x __VA_ARGS__);        \
     printf(RESET_COLOR);          \
 }
+
+#endif

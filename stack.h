@@ -1,3 +1,5 @@
+#ifndef STACK_H
+#define STACK_H
 #include <stdio.h>
 #include <assert.h>
 #include <malloc.h>
@@ -129,3 +131,5 @@ size_t djb2(stack_elem_t element);
 size_t hash_eval(stack_t stack);
 void hash_set(stack_t *stack);
 error_codes hash_check(stack_t stack);
+
+#endif

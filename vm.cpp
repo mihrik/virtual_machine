@@ -13,7 +13,7 @@ int main(int argc, const char * const argv[])
     vm_t vm = {.stack = {}, .funcs = {}, .code = NULL, .RAM = NULL, .ip = 0, .code_size = 0, .registers = {}};
     vm_ctor(&vm, fp);
 
-    stack_elem_t res = eval(&vm, fp);
+    eval(&vm, fp);
 
     fclose(fp);
 
