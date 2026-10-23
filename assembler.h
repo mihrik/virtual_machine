@@ -110,5 +110,8 @@ error_codes memory_on_push(asm_t *assembler, char specifier[]);
 size_t djb2_for_asm(const char name[]);
 size_t cmd_binary_search(size_t hash);
 size_t reg_binary_search(size_t hash);
+int compare_cmd_hashes_up(const void *val1, const void *val2);
+int compare_reg_hashes_up(const void *val1, const void *val2);
+void sort_hashes_and_regs(void);
 
 #endif
