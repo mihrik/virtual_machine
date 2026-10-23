@@ -117,7 +117,7 @@ error_codes vm_push(vm_t *vm)
     vm->ip = (size_t)(args - vm->code) - 1;
 
     STACK_PUSH(&(vm->stack), res);
-
+    //vm_dump(vm, "to_check", "vm_push");
     return SUCCESSFUL_RETURN;
 }
 
