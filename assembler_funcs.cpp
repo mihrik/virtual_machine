@@ -52,6 +52,8 @@ error_codes ignore_comment(char line[])
 
 error_codes asm_push(asm_t *assembler)
 {
+    assert(assembler);
+
     char specifier[MAX_COMMAND_SIZE] = {};
     sscanf(assembler->line, "%*s %[^\n]", specifier);
 
@@ -69,6 +71,8 @@ error_codes asm_push(asm_t *assembler)
 
 error_codes asm_reg_funcs(asm_t *assembler)
 {
+    assert(assembler);
+
     char reg[MAX_COMMAND_SIZE] = {};
     sscanf(assembler->line, "%*s %s", reg);
 
@@ -81,6 +85,8 @@ error_codes asm_reg_funcs(asm_t *assembler)
 
 error_codes asm_jmp(asm_t *assembler)
 {
+    assert(assembler);
+
     char name[MAX_MARK_NAME_SIZE] = {};
 
     sscanf(assembler->line, "%*s %s", name);
@@ -99,6 +105,8 @@ error_codes asm_jmp(asm_t *assembler)
 
 error_codes command_analysis(asm_t *assembler)
 {
+    assert(assembler);
+
     switch(assembler->command)
     {
         case CMD_PUSH :
@@ -142,6 +150,9 @@ error_codes command_analysis(asm_t *assembler)
 
 error_codes assemble(FILE *fp_r, asm_t *assembler)
 {
+    assert(assembler);
+    assert(fp_r);
+
     sort_hashes_and_regs();
 
     for (size_t i = 0; i < 2; i++)
@@ -154,6 +165,9 @@ error_codes assemble(FILE *fp_r, asm_t *assembler)
 
 error_codes pass(FILE *fp_r, asm_t *assembler)
 {
+    assert(fp_r);
+    assert(assembler);
+
     assembler->ip = 0;
     rewind(fp_r);
 
@@ -185,6 +199,8 @@ error_codes pass(FILE *fp_r, asm_t *assembler)
 
 error_codes asm_ctor(asm_t *assembler)
 {
+    assert(assembler);
+
     assembler->buffer = (stack_elem_t *) calloc(MAX_BUFFER_SIZE, sizeof(stack_elem_t));
 
     if (assembler->buffer == NULL)
@@ -195,6 +211,8 @@ error_codes asm_ctor(asm_t *assembler)
 
 error_codes asm_ram(asm_t *assembler)
 {
+    assert(assembler);
+
     stack_elem_t elem = 0;
 
     if (sscanf(assembler->line, "%*s" "%*c" deb_spec, &elem) != 1)
@@ -211,6 +229,8 @@ error_codes asm_ram(asm_t *assembler)
 
 error_codes two_arguments(asm_t *assembler, stack_elem_t elem, stack_elem_t rnum, stack_elem_t command)
 {
+    assert(assembler);
+
     assembler->buffer[assembler->ip - 1] = command;
     assembler->buffer[assembler->ip++] = elem;
     assembler->buffer[assembler->ip++] = rnum;
@@ -220,6 +240,8 @@ error_codes two_arguments(asm_t *assembler, stack_elem_t elem, stack_elem_t rnum
 
 error_codes one_argument(asm_t *assembler, stack_elem_t argument, stack_elem_t command)
 {
+    assert(assembler);
+
     assembler->buffer[assembler->ip - 1] = command;
     assembler->buffer[assembler->ip++] = argument;
 
@@ -228,6 +250,8 @@ error_codes one_argument(asm_t *assembler, stack_elem_t argument, stack_elem_t c
 
 error_codes memory_off_push(asm_t *assembler, char specifier[])
 {
+    assert(assembler);
+
     char reg[MAX_COMMAND_SIZE] = {};
     stack_elem_t elem = 0;
     if (sscanf(specifier, "%[A-IX]", reg) == 1)
@@ -256,6 +280,8 @@ error_codes memory_off_push(asm_t *assembler, char specifier[])
 
 error_codes memory_on_push(asm_t *assembler, char specifier[])
 {
+    assert(assembler);
+
     char reg[MAX_COMMAND_SIZE] = {};
     stack_elem_t elem = 0;
     if (sscanf(specifier, "[%[A-IX]", reg) == 1)
@@ -366,6 +392,9 @@ registers get_register(const char *reg)
 
 int compare_cmd_hashes_up(const void *val1, const void *val2)
 {
+    assert(val1);
+    assert(val2);
+
     const command_hash num1 = *(const command_hash *)val1;
     const command_hash num2 = *(const command_hash *)val2;
 
@@ -374,6 +403,9 @@ int compare_cmd_hashes_up(const void *val1, const void *val2)
 
 int compare_reg_hashes_up(const void *val1, const void *val2)
 {
+    assert(val1);
+    assert(val2);
+
     const register_hash num1 = *(const register_hash *)val1;
     const register_hash num2 = *(const register_hash *)val2;
 

@@ -11,8 +11,12 @@ int main(int argc, const char * const argv[])
     }
 
     vm_t vm = {.stack = {}, .funcs = {}, .code = NULL, .RAM = NULL, .ip = 0, .code_size = 0, .registers = {}};
-    vm_ctor(&vm, fp);
 
+    if ((err = vm_ctor(&vm, fp)) != SUCCESSFUL_RETURN)
+    {
+        PRINT_COLOR(EXTRA_RED, "MEMORY ALLOCATION ERROR WHILE DOING STACK_CTOR");
+        return 0;
+    }
     eval(&vm, fp);
 
     fclose(fp);
