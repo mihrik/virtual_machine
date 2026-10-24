@@ -1,11 +1,12 @@
-;                           ELLIPSE VALUES PREPARING
+;                           DISPLAY PREPARING
 IN; odd number
+POPr DX
+PUSH DX
+
+POPr CX
+PUSH 100
 POPr AX; AX = m
-PUSH AX
-PUSH 2
-DIV; got m / 2
-PUSH 1
-ADD; got m / 2 + 1
+PUSH 50
 POPr BX
 CALL EVAL
 ;
@@ -16,19 +17,6 @@ HLT
 ;                          NECESSARY VALUES
 ;                       BX = m/2 + 1 = n, AX = m
 :EVAL
-PUSH BX
-PUSH 1
-SUB; n - 1
-PUSH 2
-DIV; (n-1)/2
-POPr CX; CX = (n-1)/2
-PUSH AX
-PUSH 1
-SUB; m - 1
-PUSH 2
-DIV
-POPr DX; DX = (m-1)/2
-;                       WE HAVE AX = m, BX = n, CX = (n-1)/2, DX = (m-1)/2
 ;                       FIRST 'FOR' BEGINNING
 PUSH 0
 POPr EX;                    EX = 0 = i
@@ -40,11 +28,19 @@ POPr FX;                    FX = 0 = j
 ;                       MAIN ACTIONS
 
 PUSH FX
-PUSH DX
+PUSH AX
+PUSH 1
+SUB
+PUSH 2
+DIV
 SUB
 POPr GX;                    GX = j - hor_radius = x
 
-PUSH CX
+PUSH BX
+PUSH 1
+SUB
+PUSH 2
+DIV
 PUSH EX
 SUB
 POPr HX;                    HX = vert_radius - i = y

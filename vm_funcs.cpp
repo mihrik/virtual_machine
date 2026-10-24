@@ -140,7 +140,7 @@ error_codes vm_push(vm_t *vm)
     vm->ip = (size_t)(args - vm->code) - 1;
 
     STACK_PUSH(&(vm->stack), res);
-    //vm_dump(vm, "to_check", "vm_push");
+
     return SUCCESSFUL_RETURN;
 }
 
@@ -300,13 +300,10 @@ error_codes vm_draw(vm_t *vm)
         count++;
     }
 
-    size_t x = (size_t) sqrt(2 * count);
-    size_t y = x / 2 + 1;
-
-    for (size_t i = 0; i < y; i++)
+    for (size_t i = 0; i < DISPLAY_HEIGHT; i++)
     {
-        for (size_t j = 0; j < x; j++)
-            putchar(vm->RAM[i * x + j]);
+        for (size_t j = 0; j < DISPLAY_WIDTH; j++)
+            putchar(vm->RAM[i * DISPLAY_WIDTH + j]);
         putchar('\n');
     }
 

@@ -3,7 +3,9 @@
 #include <string.h>
 #include "cpu.h"
 
-const int RAM_SIZE = 2000;
+const int RAM_SIZE = 6000;
+const int DISPLAY_WIDTH = 100;
+const int DISPLAY_HEIGHT = 50;
 
 typedef struct buf_data
 {

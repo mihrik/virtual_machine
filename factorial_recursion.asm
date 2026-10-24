@@ -1,25 +1,37 @@
 IN
-POPr AX; set n
+POPr AX
+
+PUSH 0
+POPr BX
+
 CALL FACTORIAL
 OUT
 HLT
 
-;                                   FACTORIAL EVALUATION
 :FACTORIAL
-PUSH AX
-PUSH 1
-JNE NOT_ONE
-PUSH 1
-RET
+    PUSH BX; all factorial elements in stack
+
+    PUSH AX
+    POPr BX
+
+    PUSH AX
+    PUSH 1
+    JNE NOT_ONE
+
+    POPr BX
+    PUSH AX
+    RET
 
 :NOT_ONE
-PUSH AX
+    PUSH AX
+    PUSH 1
+    SUB
+    POPr AX; AX--
 
-PUSH AX
-PUSH 1
-SUB
-POPr AX; n--
-
-CALL FACTORIAL
-MUL
-RET
+    CALL FACTORIAL
+    PUSH BX
+    MUL
+    POPr AX
+    POPr BX
+    PUSH AX
+    RET
