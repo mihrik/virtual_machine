@@ -72,5 +72,6 @@ error_codes vm_jb(vm_t *vm);
 error_codes vm_jbe(vm_t *vm);
 error_codes vm_je(vm_t *vm);
 error_codes vm_jne(vm_t *vm);
+error_codes vm_dtor(vm_t *vm);
 
 #endif

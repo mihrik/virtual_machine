@@ -190,10 +190,6 @@ error_codes vm_hlt(vm_t *vm)
 {
     assert(vm);
 
-    STACK_DTOR(&(vm->stack), SUCCESSFUL_RETURN);
-    STACK_DTOR(&(vm->funcs), SUCCESSFUL_RETURN);
-    free_vm(vm);
-
     return SUCCESSFUL_RETURN;
 }
 
@@ -510,6 +506,17 @@ error_codes vm_jne(vm_t *vm)
     assert(vm);
 
     VM_JMP_CONDITIONAL(vm, !=);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_dtor(vm_t *vm)
+{
+    assert(vm);
+
+    STACK_DTOR(&(vm->stack), SUCCESSFUL_RETURN);
+    STACK_DTOR(&(vm->funcs), SUCCESSFUL_RETURN);
+    free_vm(vm);
 
     return SUCCESSFUL_RETURN;
 }

@@ -17,7 +17,10 @@ int main(int argc, const char * const argv[])
         PRINT_COLOR(EXTRA_RED, "MEMORY ALLOCATION ERROR WHILE DOING STACK_CTOR");
         return 0;
     }
+
     eval(&vm, fp);
+
+    vm_dtor(&vm);
 
     fclose(fp);
 
