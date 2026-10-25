@@ -333,14 +333,14 @@ commands get_command(const char *command)
     return CMD_UC;
 }
 
-size_t hash_binary_search(size_t hash, data_hash to_sort[], size_t arr_len)
+size_t hash_binary_search(size_t hash, const data_hash table[], size_t arr_len)
 {
     size_t l = 0, r = arr_len - 1;
     size_t mid = l + (r - l) / 2;
 
     while (l < r)
     {
-        if (hash <= to_sort[mid].hash)
+        if (hash <= table[mid].hash)
         {
             r = mid;
         }

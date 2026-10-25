@@ -101,7 +101,7 @@ error_codes one_argument(asm_t *assembler, stack_elem_t rnum, stack_elem_t comma
 error_codes memory_off_push(asm_t *assembler, char specifier[]);
 error_codes memory_on_push(asm_t *assembler, char specifier[]);
 size_t djb2_for_asm(const char name[]);
-size_t hash_binary_search(size_t hash, data_hash to_sort[], size_t arr_len);
+size_t hash_binary_search(size_t hash, const data_hash table[], size_t arr_len);
 int compare_hashes_up(const void *val1, const void *val2);
 void sort_hashes_and_regs(void);
 
