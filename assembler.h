@@ -1,6 +1,6 @@
 #ifndef ASSEMBLER_H
 #define ASSEMBLER_H
-#include "cpu.h"
+#include "enum.h"
 
 const int MAX_COMMAND_SIZE = 400;
 const int MAX_BUFFER_SIZE = 2000;
@@ -31,19 +31,12 @@ typedef struct asm_t
     mark_t labels[20];
 } asm_t;
 
-typedef struct command_hash
+typedef struct data_hash
 {
-    commands cnum;
+    int num;
     size_t hash;
     char name[MAX_COMMAND_NAME_LEN];
-} command_hash;
-
-typedef struct register_hash
-{
-    registers rnum;
-    size_t hash;
-    char name[MAX_REGISTER_NAME_LEN];
-} register_hash;
+} data_hash;
 
 #define CHECK_ERROR(message) {\
     PRINT_COLOR(EXTRA_RED, #message " WHILE DOING %s:%d in function: %s", __FILE__, __LINE__, __func__);\
@@ -108,10 +101,8 @@ error_codes one_argument(asm_t *assembler, stack_elem_t rnum, stack_elem_t comma
 error_codes memory_off_push(asm_t *assembler, char specifier[]);
 error_codes memory_on_push(asm_t *assembler, char specifier[]);
 size_t djb2_for_asm(const char name[]);
-size_t cmd_binary_search(size_t hash);
-size_t reg_binary_search(size_t hash);
-int compare_cmd_hashes_up(const void *val1, const void *val2);
-int compare_reg_hashes_up(const void *val1, const void *val2);
+size_t hash_binary_search(size_t hash, data_hash to_sort[], size_t arr_len);
+int compare_hashes_up(const void *val1, const void *val2);
 void sort_hashes_and_regs(void);
 
 #endif

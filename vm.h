@@ -1,7 +1,7 @@
 #ifndef VM_H
 #define VM_H
 #include <string.h>
-#include "cpu.h"
+#include "enum.h"
 
 const int RAM_SIZE = 6000;
 const int DISPLAY_WIDTH = 100;

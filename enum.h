@@ -1,5 +1,5 @@
-#ifndef CPU_H
-#define CPU_H
+#ifndef ENUM_H
+#define ENUM_H
 #include "stack.h"
 
 

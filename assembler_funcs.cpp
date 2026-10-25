@@ -2,43 +2,43 @@
 #include <string.h>
 // TODO review neighbour's code and mentors
 
-command_hash cmd_hashes[] =
+data_hash cmd_hashes[] =
 {
-    {.cnum = CMD_CALL, .hash = djb2_for_asm("CALL"), .name = "CALL"},
-    {.cnum = CMD_ADD, .hash = djb2_for_asm("ADD"), .name = "ADD"},
-    {.cnum = CMD_DRAW, .hash = djb2_for_asm("DRAW"), .name = "DRAW"},
-    {.cnum = CMD_JMP, .hash = djb2_for_asm("JMP"), .name = "JMP"},
-    {.cnum = CMD_JNE, .hash = djb2_for_asm("JNE"), .name = "JNE"},
-    {.cnum = CMD_PUSH, .hash = djb2_for_asm("PUSH"), .name = "PUSH"},
-    {.cnum = CMD_SUB, .hash = djb2_for_asm("SUB"), .name = "SUB"},
-    {.cnum = CMD_POPmr, .hash = djb2_for_asm("POPmr"), .name = "POPmr"},
-    {.cnum = CMD_IN, .hash = djb2_for_asm("IN"), .name = "IN"},
-    {.cnum = CMD_JA, .hash = djb2_for_asm("JA"), .name = "JA"},
-    {.cnum = CMD_JB, .hash = djb2_for_asm("JB"), .name = "JB"},
-    {.cnum = CMD_JE, .hash = djb2_for_asm("JE"), .name = "JE"},
-    {.cnum = CMD_DIV, .hash = djb2_for_asm("DIV"), .name = "DIV"},
-    {.cnum = CMD_POPm, .hash = djb2_for_asm("POPm"), .name = "POPm"},
-    {.cnum = CMD_POPr, .hash = djb2_for_asm("POPr"), .name = "POPr"},
-    {.cnum = CMD_RET, .hash = djb2_for_asm("RET"), .name = "RET"},
-    {.cnum = CMD_SQRT, .hash = djb2_for_asm("SQRT"), .name = "SQRT"},
-    {.cnum = CMD_MUL, .hash = djb2_for_asm("MUL"), .name = "MUL"},
-    {.cnum = CMD_JAE, .hash = djb2_for_asm("JAE"), .name = "JAE"},
-    {.cnum = CMD_JBE, .hash = djb2_for_asm("JBE"), .name = "JBE"},
-    {.cnum = CMD_OUT, .hash = djb2_for_asm("OUT"), .name = "OUT"},
-    {.cnum = CMD_HLT, .hash = djb2_for_asm("HLT"), .name = "HLT"}
+    {.num = CMD_POPmr, .hash = djb2_for_asm("POPmr"), .name = "POPmr"},
+    {.num = CMD_SQRT, .hash = djb2_for_asm("SQRT"), .name = "SQRT"},
+    {.num = CMD_CALL, .hash = djb2_for_asm("CALL"), .name = "CALL"},
+    {.num = CMD_POPm, .hash = djb2_for_asm("POPm"), .name = "POPm"},
+    {.num = CMD_POPr, .hash = djb2_for_asm("POPr"), .name = "POPr"},
+    {.num = CMD_DRAW, .hash = djb2_for_asm("DRAW"), .name = "DRAW"},
+    {.num = CMD_PUSH, .hash = djb2_for_asm("PUSH"), .name = "PUSH"},
+    {.num = CMD_ADD, .hash = djb2_for_asm("ADD"), .name = "ADD"},
+    {.num = CMD_JMP, .hash = djb2_for_asm("JMP"), .name = "JMP"},
+    {.num = CMD_JNE, .hash = djb2_for_asm("JNE"), .name = "JNE"},
+    {.num = CMD_SUB, .hash = djb2_for_asm("SUB"), .name = "SUB"},
+    {.num = CMD_DIV, .hash = djb2_for_asm("DIV"), .name = "DIV"},
+    {.num = CMD_RET, .hash = djb2_for_asm("RET"), .name = "RET"},
+    {.num = CMD_MUL, .hash = djb2_for_asm("MUL"), .name = "MUL"},
+    {.num = CMD_JAE, .hash = djb2_for_asm("JAE"), .name = "JAE"},
+    {.num = CMD_JBE, .hash = djb2_for_asm("JBE"), .name = "JBE"},
+    {.num = CMD_OUT, .hash = djb2_for_asm("OUT"), .name = "OUT"},
+    {.num = CMD_HLT, .hash = djb2_for_asm("HLT"), .name = "HLT"},
+    {.num = CMD_IN, .hash = djb2_for_asm("IN"), .name = "IN"},
+    {.num = CMD_JA, .hash = djb2_for_asm("JA"), .name = "JA"},
+    {.num = CMD_JB, .hash = djb2_for_asm("JB"), .name = "JB"},
+    {.num = CMD_JE, .hash = djb2_for_asm("JE"), .name = "JE"}
 };
 
-register_hash r_hashes[]=
+data_hash r_hashes[]=
 {
-    {.rnum = AX, .hash = djb2_for_asm("AX"), .name = "AX"},
-    {.rnum = BX, .hash = djb2_for_asm("BX"), .name = "BX"},
-    {.rnum = CX, .hash = djb2_for_asm("CX"), .name = "CX"},
-    {.rnum = DX, .hash = djb2_for_asm("DX"), .name = "DX"},
-    {.rnum = EX, .hash = djb2_for_asm("EX"), .name = "EX"},
-    {.rnum = FX, .hash = djb2_for_asm("FX"), .name = "FX"},
-    {.rnum = GX, .hash = djb2_for_asm("GX"), .name = "GX"},
-    {.rnum = HX, .hash = djb2_for_asm("HX"), .name = "HX"},
-    {.rnum = IX, .hash = djb2_for_asm("IX"), .name = "IX"}
+    {.num = AX, .hash = djb2_for_asm("AX"), .name = "AX"},
+    {.num = BX, .hash = djb2_for_asm("BX"), .name = "BX"},
+    {.num = CX, .hash = djb2_for_asm("CX"), .name = "CX"},
+    {.num = DX, .hash = djb2_for_asm("DX"), .name = "DX"},
+    {.num = EX, .hash = djb2_for_asm("EX"), .name = "EX"},
+    {.num = FX, .hash = djb2_for_asm("FX"), .name = "FX"},
+    {.num = GX, .hash = djb2_for_asm("GX"), .name = "GX"},
+    {.num = HX, .hash = djb2_for_asm("HX"), .name = "HX"},
+    {.num = IX, .hash = djb2_for_asm("IX"), .name = "IX"}
 };
 
 error_codes ignore_comment(char line[])
@@ -324,45 +324,23 @@ commands get_command(const char *command)
 {
     size_t hash = djb2_for_asm(command);
 
-    size_t index = cmd_binary_search(hash);
+    size_t index = hash_binary_search(hash, cmd_hashes, sizeof(cmd_hashes) / sizeof(cmd_hashes[0]));
     if (strcmp(command, cmd_hashes[index].name) == 0)
     {
-        return cmd_hashes[index].cnum;
+        return (commands)cmd_hashes[index].num;
     }
 
     return CMD_UC;
 }
 
-size_t cmd_binary_search(size_t hash)
+size_t hash_binary_search(size_t hash, data_hash to_sort[], size_t arr_len)
 {
-    size_t l = 0, r = sizeof(cmd_hashes) / sizeof(cmd_hashes[0]) - 1;
+    size_t l = 0, r = arr_len - 1;
     size_t mid = l + (r - l) / 2;
 
     while (l < r)
     {
-        if (hash <= cmd_hashes[mid].hash)
-        {
-            r = mid;
-        }
-        else
-        {
-            l = mid + 1;
-        }
-
-        mid = l + (r - l) / 2;
-    }
-
-    return r;
-}
-
-size_t reg_binary_search(size_t hash)
-{
-    size_t l = 0, r = sizeof(r_hashes) / sizeof(r_hashes[0]) - 1;
-    size_t mid = l + (r - l) / 2;
-
-    while (l < r)
-    {
-        if (hash <= r_hashes[mid].hash)
+        if (hash <= to_sort[mid].hash)
         {
             r = mid;
         }
@@ -381,39 +359,28 @@ registers get_register(const char *reg)
 {
     size_t hash = djb2_for_asm(reg);
 
-    size_t index = reg_binary_search(hash);
+    size_t index = hash_binary_search(hash, r_hashes, sizeof(r_hashes) / sizeof(r_hashes[0]));
     if (strcmp(reg, r_hashes[index].name) == 0)
     {
-        return r_hashes[index].rnum;
+        return (registers)r_hashes[index].num;
     }
 
     return UR;
 }
 
-int compare_cmd_hashes_up(const void *val1, const void *val2)
+int compare_hashes_up(const void *val1, const void *val2)
 {
     assert(val1);
     assert(val2);
 
-    const command_hash num1 = *(const command_hash *)val1;
-    const command_hash num2 = *(const command_hash *)val2;
-
-    return (int)num1.hash - (int)num2.hash;
-}
-
-int compare_reg_hashes_up(const void *val1, const void *val2)
-{
-    assert(val1);
-    assert(val2);
-
-    const register_hash num1 = *(const register_hash *)val1;
-    const register_hash num2 = *(const register_hash *)val2;
+    const data_hash num1 = *(const data_hash *)val1;
+    const data_hash num2 = *(const data_hash *)val2;
 
     return (int)num1.hash - (int)num2.hash;
 }
 
 void sort_hashes_and_regs(void)
 {
-    qsort(cmd_hashes, sizeof(cmd_hashes) / sizeof(cmd_hashes[0]), sizeof(cmd_hashes[0]), compare_cmd_hashes_up);
-    qsort(r_hashes, sizeof(r_hashes) / sizeof(r_hashes[0]), sizeof(r_hashes[0]), compare_reg_hashes_up);
+    qsort(cmd_hashes, sizeof(cmd_hashes) / sizeof(cmd_hashes[0]), sizeof(cmd_hashes[0]), compare_hashes_up);
+    qsort(r_hashes, sizeof(r_hashes) / sizeof(r_hashes[0]), sizeof(r_hashes[0]), compare_hashes_up);
 }
