@@ -4,11 +4,8 @@
 
 data_hash cmd_hashes[] =
 {
-    {.num = CMD_POPmr, .hash = djb2_for_asm("POPmr"), .name = "POPmr"},
     {.num = CMD_SQRT, .hash = djb2_for_asm("SQRT"), .name = "SQRT"},
     {.num = CMD_CALL, .hash = djb2_for_asm("CALL"), .name = "CALL"},
-    {.num = CMD_POPm, .hash = djb2_for_asm("POPm"), .name = "POPm"},
-    {.num = CMD_POPr, .hash = djb2_for_asm("POPr"), .name = "POPr"},
     {.num = CMD_DRAW, .hash = djb2_for_asm("DRAW"), .name = "DRAW"},
     {.num = CMD_PUSH, .hash = djb2_for_asm("PUSH"), .name = "PUSH"},
     {.num = CMD_ADD, .hash = djb2_for_asm("ADD"), .name = "ADD"},
@@ -22,6 +19,7 @@ data_hash cmd_hashes[] =
     {.num = CMD_JBE, .hash = djb2_for_asm("JBE"), .name = "JBE"},
     {.num = CMD_OUT, .hash = djb2_for_asm("OUT"), .name = "OUT"},
     {.num = CMD_HLT, .hash = djb2_for_asm("HLT"), .name = "HLT"},
+    {.num = CMD_POP, .hash = djb2_for_asm("POP"), .name = "POP"},
     {.num = CMD_IN, .hash = djb2_for_asm("IN"), .name = "IN"},
     {.num = CMD_JA, .hash = djb2_for_asm("JA"), .name = "JA"},
     {.num = CMD_JB, .hash = djb2_for_asm("JB"), .name = "JB"},
@@ -50,21 +48,23 @@ error_codes ignore_comment(char line[])
     return SUCCESSFUL_RETURN;
 }
 
-error_codes asm_push(asm_t *assembler)
+error_codes asm_variable(asm_t *assembler, commands cmd)
 {
     assert(assembler);
 
     char specifier[MAX_COMMAND_SIZE] = {};
+    size_t command = cmd;
     sscanf(assembler->line, "%*s %[^\n]", specifier);
+
+    char* argument = specifier;
 
     if (specifier[0] == '[')
     {
-        memory_on_push(assembler, specifier);
+        command = command | MODE_M;
+        argument++;
     }
-    else
-    {
-        memory_off_push(assembler, specifier);
-    }
+
+    execute_variable(assembler, argument, command);
 
     return SUCCESSFUL_RETURN;
 }
@@ -111,14 +111,13 @@ error_codes command_analysis(asm_t *assembler)
     {
         case CMD_PUSH :
                         {
-                            asm_push(assembler);
+                            asm_variable(assembler, CMD_PUSH);
 
                             break;
                         }
-        case CMD_POPr :
-        case CMD_POPmr:
+        case CMD_POP :
                         {
-                            asm_reg_funcs(assembler);
+                            asm_variable(assembler, CMD_POP);
 
                             break;
                         }
@@ -132,14 +131,6 @@ error_codes command_analysis(asm_t *assembler)
         case CMD_CALL :
                         {
                             asm_jmp(assembler);
-
-                            break;
-                        }
-        case CMD_POPm :
-                        {
-                            asm_ram(assembler);
-
-                            break;
                         }
         default   : break;
 
@@ -248,64 +239,49 @@ error_codes one_argument(asm_t *assembler, stack_elem_t argument, stack_elem_t c
     return SUCCESSFUL_RETURN;
 }
 
-error_codes memory_off_push(asm_t *assembler, char specifier[])
+error_codes execute_variable(asm_t *assembler, char specifier[], size_t command)
 {
     assert(assembler);
 
     char reg[MAX_COMMAND_SIZE] = {};
     stack_elem_t elem = 0;
+
+    bool is_push = (command & 0x1F) == CMD_PUSH;
+    bool is_pop = (command & 0x1F) == CMD_POP;
+    bool is_memory = (command & MODE_M) != 0;
+
+    bool allow_constant = is_push || (is_pop && is_memory);
+
     if (sscanf(specifier, "%[A-IX]", reg) == 1)
     {
         stack_elem_t rnum = get_register(reg);
+        command = command | MODE_R;
         if (sscanf(specifier, "%*[^+]+ " deb_spec, &elem) == 1)
         {
-            PUSH_KONST_AND_REG(MODE_RK);
+            if (!allow_constant)
+                return WRONG_POP_PARAMETERS;
+
+            command = command | MODE_K;
+            PUSH_KONST_AND_REG(command);
             return SUCCESSFUL_RETURN;
         }
         else
         {
-            PUSH_REG(MODE_R);
+            command = command | MODE_R;
+            PUSH_REG(command);
             return SUCCESSFUL_RETURN;
         }
     }
-    else
+    else if (allow_constant)
     {
-            sscanf(specifier, deb_spec, &elem);
-            PUSH_KONST(MODE_K);
-            return SUCCESSFUL_RETURN;
-    }
-
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes memory_on_push(asm_t *assembler, char specifier[])
-{
-    assert(assembler);
-
-    char reg[MAX_COMMAND_SIZE] = {};
-    stack_elem_t elem = 0;
-    if (sscanf(specifier, "[%[A-IX]", reg) == 1)
-    {
-        stack_elem_t rnum = get_register(reg);
-        if (sscanf(specifier, "%*[^+]+ " deb_spec, &elem) == 1)
-        {
-            PUSH_KONST_AND_REG(MODE_MRK);
-            return SUCCESSFUL_RETURN;
-        }
-        else
-        {
-            PUSH_REG(MODE_MR);
-            return SUCCESSFUL_RETURN;
-        }
-    }
-    else
-    {
-        sscanf(specifier, "[" deb_spec, &elem);
-        PUSH_KONST(MODE_MK);
+        if (sscanf(specifier, deb_spec, &elem) != 1)
+            return INVALID_QUANTITY_OF_ARGUMENTS;
+        command = command | MODE_K;
+        PUSH_KONST(command);
         return SUCCESSFUL_RETURN;
     }
 
-    return SUCCESSFUL_RETURN;
+    return WRONG_POP_PARAMETERS;
 }
 
 size_t djb2_for_asm(const char name[])
@@ -335,6 +311,8 @@ commands get_command(const char *command)
 
 size_t hash_binary_search(size_t hash, const data_hash table[], size_t arr_len)
 {
+    assert(table);
+
     size_t l = 0, r = arr_len - 1;
     size_t mid = l + (r - l) / 2;
 
@@ -384,3 +362,6 @@ void sort_hashes_and_regs(void)
     qsort(cmd_hashes, sizeof(cmd_hashes) / sizeof(cmd_hashes[0]), sizeof(cmd_hashes[0]), compare_hashes_up);
     qsort(r_hashes, sizeof(r_hashes) / sizeof(r_hashes[0]), sizeof(r_hashes[0]), compare_hashes_up);
 }
+
+
+

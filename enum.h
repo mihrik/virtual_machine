@@ -10,7 +10,7 @@ typedef enum commands
     CMD_SUB = 3,
     CMD_DIV = 4,
     CMD_OUT = 5,
-    CMD_POPr = 6,
+    CMD_POP = 6,
     CMD_MUL = 7,
     CMD_JMP = 8,
     CMD_JA = 9,
@@ -23,10 +23,8 @@ typedef enum commands
     CMD_CALL = 16,
     CMD_RET = 17,
     CMD_SQRT = 18,
-    CMD_POPm = 19,
-    CMD_DRAW = 20,
-    CMD_POPmr = 21,
-    CMD_HLT = 22,
+    CMD_DRAW = 19,
+    CMD_HLT = 20,
     CMD_UC= 30
 } comands;
 

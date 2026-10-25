@@ -13,7 +13,7 @@ error_codes (*to_execute[])(vm_t *vm) =
     vm_sub,
     vm_div,
     vm_out,
-    vm_popr,
+    vm_pop,
     vm_mul,
     vm_jmp,
     vm_ja,
@@ -26,9 +26,7 @@ error_codes (*to_execute[])(vm_t *vm) =
     vm_call,
     vm_ret,
     vm_sqrt,
-    vm_popm,
     vm_draw,
-    vm_popmr,
     vm_hlt
 };
 
@@ -122,7 +120,7 @@ error_codes vm_push(vm_t *vm)
     }
     if (vm->code[vm->ip] & 0x80)
     {
-        if (res >= RAM_SIZE)
+        if (res >= RAM_SIZE || res < 0)
         {
             vm_dump(vm, "RAM SIZE WAS EXCEEDED", "vm_push");
             return RAM_SIZE_EXCEEDED;
@@ -517,6 +515,61 @@ error_codes vm_dtor(vm_t *vm)
     STACK_DTOR(&(vm->stack), SUCCESSFUL_RETURN);
     STACK_DTOR(&(vm->funcs), SUCCESSFUL_RETURN);
     free_vm(vm);
+
+    return SUCCESSFUL_RETURN;
+}
+
+error_codes vm_pop(vm_t *vm)
+{
+    assert(vm);
+
+    stack_elem_t res = 0;
+    stack_elem_t elem = 0;
+    size_t rnum = 0;
+    stack_elem_t *args = vm->code + vm->ip + 1;
+    bool has_K = false;
+    bool has_R = false;
+    bool has_M = false;
+
+    if (vm->code[vm->ip] & 0x20)
+    {
+        res += *args;
+        args++;
+        has_K = true;
+    }
+    if (vm->code[vm->ip] & 0x40)
+    {
+        rnum = *args;
+        args++;
+
+        res += vm->registers[rnum];
+        has_R = true;
+    }
+    if (vm->code[vm->ip] & 0x80)
+    {
+        if (res >= RAM_SIZE || res < 0)
+        {
+            vm_dump(vm, "RAM SIZE WAS EXCEEDED", "vm_push");
+            return RAM_SIZE_EXCEEDED;
+        }
+
+        STACK_POP(&(vm->stack), &elem);
+        vm->RAM[res] = elem;
+
+        vm->ip = (size_t)(args - vm->code) - 1;
+        return SUCCESSFUL_RETURN;
+    }
+
+    if (!has_M && !has_K && !has_R)
+    {
+        vm_dump(vm, "wrong parameters of vm_push", "vm_push");
+        return WRONG_PUSH_PARAMETERS;
+    }
+
+    vm->ip = (size_t)(args - vm->code) - 1;
+
+    STACK_POP(&(vm->stack), &elem);
+    vm->registers[rnum] = elem;
 
     return SUCCESSFUL_RETURN;
 }

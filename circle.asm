@@ -1,13 +1,14 @@
 ;                           DISPLAY PREPARING
 IN; odd number
-POPr DX
+POP DX
 PUSH DX
-
-POPr CX
+PUSH 2
+DIV
+POP CX
 PUSH 100
-POPr AX; AX = m
+POP AX; AX = m
 PUSH 50
-POPr BX
+POP BX
 CALL EVAL
 ;
 DRAW
@@ -19,11 +20,11 @@ HLT
 :EVAL
 ;                       FIRST 'FOR' BEGINNING
 PUSH 0
-POPr EX;                    EX = 0 = i
+POP EX;                    EX = 0 = i
 ;                       SECOND 'FOR' BEGINNING
 :FIRST_LOOP
 PUSH 0
-POPr FX;                    FX = 0 = j
+POP FX;                    FX = 0 = j
 :SECOND_LOOP
 ;                       MAIN ACTIONS
 
@@ -34,7 +35,7 @@ SUB
 PUSH 2
 DIV
 SUB
-POPr GX;                    GX = j - hor_radius = x
+POP GX;                    GX = j - hor_radius = x
 
 PUSH BX
 PUSH 1
@@ -43,7 +44,7 @@ PUSH 2
 DIV
 PUSH EX
 SUB
-POPr HX;                    HX = vert_radius - i = y
+POP HX;                    HX = vert_radius - i = y
 
 PUSH GX
 PUSH GX
@@ -73,7 +74,7 @@ CALL FILL_RAM
 PUSH FX
 PUSH 1
 ADD
-POPr FX; FX++
+POP FX; FX++
 PUSH FX
 PUSH AX
 JB SECOND_LOOP; if j < m
@@ -81,7 +82,7 @@ JB SECOND_LOOP; if j < m
 PUSH EX
 PUSH 1
 ADD
-POPr EX; EX++
+POP EX; EX++
 PUSH EX
 PUSH BX
 JB FIRST_LOOP; if i < n
@@ -96,9 +97,9 @@ PUSH AX
 MUL; i * m
 PUSH FX
 ADD; i * n + j
-POPr IX;                    IX = i * n + j
+POP IX;                    IX = i * n + j
 PUSH 46
-POPmr IX
+POP [IX]
 RET
 
 :IN_CIRC
@@ -107,7 +108,7 @@ PUSH AX
 MUL; i * m
 PUSH FX
 ADD; i * m + j
-POPr IX
+POP IX
 PUSH 35
-POPmr IX
+POP [IX]
 RET

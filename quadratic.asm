@@ -1,9 +1,9 @@
 IN
-POPr AX; AX = a
+POP AX; AX = a
 IN
-POPr BX; BX = b
+POP BX; BX = b
 IN
-POPr CX; CX = c
+POP CX; CX = c
 CALL COEF_AN; coefficients analysis
 CALL DISCRIMINANT; next line we got discriminant
 CALL CHECK_DS; check discriminant
@@ -21,7 +21,7 @@ PUSH CX
 MUL; ac in stack
 MUL; 4ac in stack
 SUB; b^2 - 4ac in stack
-POPr DX; DX = sqrt(d)
+POP DX; DX = sqrt(d)
 RET
 
 ;                                       DISCRIMINANT ANALYSIS
@@ -55,7 +55,7 @@ RET
 :DS_ABOVE_ZERO
 PUSH DX
 SQRT
-POPr DX; sqrt(d)
+POP DX; sqrt(d)
 PUSH 0
 PUSH BX
 SUB; got -b

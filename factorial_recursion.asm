@@ -1,8 +1,8 @@
 IN
-POPr AX
+POP AX
 
 PUSH 0
-POPr BX
+POP BX
 
 CALL FACTORIAL
 OUT
@@ -12,13 +12,13 @@ HLT
     PUSH BX; all factorial elements in stack
 
     PUSH AX
-    POPr BX
+    POP BX
 
     PUSH AX
     PUSH 1
     JNE NOT_ONE
 
-    POPr BX
+    POP BX
     PUSH AX
     RET
 
@@ -26,12 +26,12 @@ HLT
     PUSH AX
     PUSH 1
     SUB
-    POPr AX; AX--
+    POP AX; AX--
 
     CALL FACTORIAL
     PUSH BX
     MUL
-    POPr AX
-    POPr BX
+    POP AX
+    POP BX
     PUSH AX
     RET

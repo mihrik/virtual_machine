@@ -8,12 +8,9 @@ const int MAX_MARK_NAME_SIZE = 20;
 const int MAX_COMMAND_NAME_LEN = 10;
 const int MAX_REGISTER_NAME_LEN = 3;
 
-#define MODE_MRK 225
-#define MODE_MR 193
-#define MODE_MK 161
-#define MODE_RK 97
-#define MODE_R 65
-#define MODE_K 33
+#define MODE_M 128
+#define MODE_R 64
+#define MODE_K 32
 
 typedef struct mark_t
 {
@@ -85,7 +82,7 @@ typedef struct data_hash
     one_argument(assembler, rnum, (command));\
 }
 
-error_codes asm_push(asm_t *assembler);
+error_codes asm_variable(asm_t *assembler, commands cmd);
 error_codes asm_reg_funcs(asm_t *assembler);
 error_codes asm_jmp(asm_t *assembler);
 error_codes command_analysis(asm_t *assembler);
@@ -98,11 +95,11 @@ registers get_register(const char *reg);
 error_codes ignore_comment(char line[]);
 error_codes two_arguments(asm_t *assembler, stack_elem_t elem, stack_elem_t rnum, stack_elem_t command);
 error_codes one_argument(asm_t *assembler, stack_elem_t rnum, stack_elem_t command);
-error_codes memory_off_push(asm_t *assembler, char specifier[]);
-error_codes memory_on_push(asm_t *assembler, char specifier[]);
+error_codes execute_push(asm_t *assembler, char specifier[], size_t command);
 size_t djb2_for_asm(const char name[]);
 size_t hash_binary_search(size_t hash, const data_hash table[], size_t arr_len);
 int compare_hashes_up(const void *val1, const void *val2);
 void sort_hashes_and_regs(void);
+error_codes execute_variable(asm_t *assembler, char specifier[], size_t command);
 
 #endif

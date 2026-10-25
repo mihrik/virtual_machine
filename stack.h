@@ -43,7 +43,8 @@ typedef enum error_codes
     RAM_SIZE_EXCEEDED = 28,
     IMPOSSIBLE_REG_NUM = 29,
     NO_IN_ELEMS = 30,
-    NEGATIVE_SQRT = 31
+    NEGATIVE_SQRT = 31,
+    WRONG_POP_PARAMETERS = 32
 } error_codes;
 
 #ifdef STACK_ON_DEBUG
