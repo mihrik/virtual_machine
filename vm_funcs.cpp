@@ -58,6 +58,9 @@ error_codes eval(vm_t *vm, FILE *fp)
     {
         assert(vm->ip < vm->code_size);
 
+        if (err != SUCCESSFUL_RETURN)
+            return err;
+
         command = (commands)(vm->code)[vm->ip];
 
         err = to_execute[(command) & 0x1F](vm);
@@ -65,7 +68,7 @@ error_codes eval(vm_t *vm, FILE *fp)
         vm->ip++;
     } while ((command & 0x1F) != CMD_HLT && err == SUCCESSFUL_RETURN);
 
-    return UNKNOWN_COMMAND;
+    return SUCCESSFUL_RETURN;
 }
 
 stack_elem_t * read_text(FILE *fp, vm_t *vm)

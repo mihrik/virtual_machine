@@ -5,12 +5,21 @@ int main(int argc, const char * const argv[])
 {
     FILE *fp_r = NULL;
     FILE *fp_w = fopen("compiled.bin", "w");
+    error_codes err = SUCCESSFUL_RETURN;
 
-    args_analysis(argc, argv, &fp_r);
+    if ((err = args_analysis(argc, argv, &fp_r)) != SUCCESSFUL_RETURN)
+    {
+        PRINT_COLOR(EXTRA_RED, "INVALID_QUANTITY_OF_ARGUMENTS");
+        return err;
+    }
 
 
     asm_t assembler = {.line = {}, .command_line = {}, .buffer = NULL, .command = CMD_UC, .ip = 0, .labels = {}};
-    asm_ctor(&assembler);
+    if ((err = asm_ctor(&assembler)) != SUCCESSFUL_RETURN)
+    {
+        PRINT_COLOR(EXTRA_RED, "MEMORY ALLOCATION ERROR WHILE DOING STACK_CTOR");
+        return 0;
+    }
 
     assemble(fp_r, &assembler);
 

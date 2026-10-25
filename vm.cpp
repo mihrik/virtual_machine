@@ -18,7 +18,10 @@ int main(int argc, const char * const argv[])
         return 0;
     }
 
-    eval(&vm, fp);
+    if ((err = eval(&vm, fp)) != SUCCESSFUL_RETURN)
+    {
+        return err;
+    }
 
     vm_dtor(&vm);
 

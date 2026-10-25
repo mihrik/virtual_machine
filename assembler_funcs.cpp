@@ -55,6 +55,7 @@ error_codes asm_variable(asm_t *assembler, commands cmd)
     char specifier[MAX_COMMAND_SIZE] = {};
     size_t command = cmd;
     sscanf(assembler->line, "%*s %[^\n]", specifier);
+    error_codes err = SUCCESSFUL_RETURN;
 
     char* argument = specifier;
 
@@ -64,9 +65,9 @@ error_codes asm_variable(asm_t *assembler, commands cmd)
         argument++;
     }
 
-    execute_variable(assembler, argument, command);
+    err = execute_variable(assembler, argument, command);
 
-    return SUCCESSFUL_RETURN;
+    return err;
 }
 
 error_codes asm_reg_funcs(asm_t *assembler)
@@ -89,7 +90,8 @@ error_codes asm_jmp(asm_t *assembler)
 
     char name[MAX_MARK_NAME_SIZE] = {};
 
-    sscanf(assembler->line, "%*s %s", name);
+    if (sscanf(assembler->line, "%*s %s", name) != 1)
+        return  MARK_ABSENCE;
     for (size_t i = 0; i < sizeof(assembler->labels) / sizeof(assembler->labels[0]); i++)
     {
         if (strcmp(name, assembler->labels[i].name) == 0)
@@ -107,17 +109,19 @@ error_codes command_analysis(asm_t *assembler)
 {
     assert(assembler);
 
+    error_codes err = SUCCESSFUL_RETURN;
+
     switch(assembler->command)
     {
         case CMD_PUSH :
                         {
-                            asm_variable(assembler, CMD_PUSH);
+                            err = asm_variable(assembler, CMD_PUSH);
 
                             break;
                         }
         case CMD_POP :
                         {
-                            asm_variable(assembler, CMD_POP);
+                            err = asm_variable(assembler, CMD_POP);
 
                             break;
                         }
@@ -136,7 +140,7 @@ error_codes command_analysis(asm_t *assembler)
 
     }
 
-    return SUCCESSFUL_RETURN;
+    return err;
 }
 
 error_codes assemble(FILE *fp_r, asm_t *assembler)
@@ -144,14 +148,16 @@ error_codes assemble(FILE *fp_r, asm_t *assembler)
     assert(assembler);
     assert(fp_r);
 
+    error_codes err = SUCCESSFUL_RETURN;
+
     sort_hashes_and_regs();
 
     for (size_t i = 0; i < 2; i++)
     {
-        pass(fp_r, assembler);
+        err = pass(fp_r, assembler);
     }
 
-    return SUCCESSFUL_RETURN;
+    return err;
 }
 
 error_codes pass(FILE *fp_r, asm_t *assembler)
@@ -161,6 +167,7 @@ error_codes pass(FILE *fp_r, asm_t *assembler)
 
     assembler->ip = 0;
     rewind(fp_r);
+    error_codes err = SUCCESSFUL_RETURN;
 
     while (fgets(assembler->line, MAX_COMMAND_SIZE, fp_r))
     {
@@ -182,10 +189,10 @@ error_codes pass(FILE *fp_r, asm_t *assembler)
         assembler->buffer[assembler->ip] = assembler->command;
         assembler->ip += 1;
 
-        command_analysis(assembler);
+        err = command_analysis(assembler);
     }
 
-    return SUCCESSFUL_RETURN;
+    return err;
 }
 
 error_codes asm_ctor(asm_t *assembler)
