@@ -166,7 +166,7 @@ error_codes pass(FILE *fp_r, asm_t *assembler)
 
     assembler->ip = 0;
     rewind(fp_r);
-    error_codes err = SUCCESSFUL_RETURN; // TODO ONEGIN reader
+    error_codes err = SUCCESSFUL_RETURN;
 
     while (fgets(assembler->line, MAX_COMMAND_SIZE, fp_r))
     {
@@ -202,24 +202,6 @@ error_codes asm_ctor(asm_t *assembler)
 
     if (assembler->buffer == NULL)
         return MEMORY_ALLOCATION_ERROR;
-
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes asm_ram(asm_t *assembler)
-{
-    assert(assembler);
-
-    stack_elem_t elem = 0;
-
-    if (sscanf(assembler->line, "%*s" "%*c" deb_spec, &elem) != 1)
-    {
-        printf("ABSENCE OF THE SECOND PARAMETER OF PUSH" " WHILE DOING %s:%d in function: %s\n", __FILE__, __LINE__, __func__);
-        return INVALID_QUANTITY_OF_ARGUMENTS;
-    }
-
-    assembler->buffer[assembler->ip] = elem;
-    assembler->ip += 1;
 
     return SUCCESSFUL_RETURN;
 }
@@ -375,7 +357,4 @@ void sort_hashes_and_regs(void)
 void put_signature(asm_t *assembler, FILE *fp_w)
 {
     fwrite(MESSAGE, sizeof(char), MESSAGE_SIZE, fp_w);
-
-
 }
-

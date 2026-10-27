@@ -91,7 +91,6 @@ error_codes command_analysis(asm_t *assembler);
 error_codes assemble(FILE *fp_r, asm_t *assembler);
 error_codes asm_ctor(asm_t *assembler);
 error_codes pass(FILE *fp_r, asm_t *assembler);
-error_codes asm_ram(asm_t *assembler);
 commands get_command(const char *command);
 registers get_register(const char *reg);
 error_codes ignore_comment(char line[]);
