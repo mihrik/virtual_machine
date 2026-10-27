@@ -44,7 +44,8 @@ typedef enum error_codes
     NO_IN_ELEMS = 29,
     NEGATIVE_SQRT = 30,
     WRONG_POP_PARAMETERS = 31,
-    MARK_ABSENCE = 32
+    MARK_ABSENCE = 32,
+    ZERO_DIVISION_ERROR = 33
 } error_codes;
 
 #ifdef STACK_ON_DEBUG

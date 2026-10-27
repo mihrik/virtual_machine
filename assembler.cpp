@@ -13,13 +13,14 @@ int main(int argc, const char * const argv[])
         return err;
     }
 
-
     asm_t assembler = {.line = {}, .command_line = {}, .buffer = NULL, .command = CMD_UC, .ip = 0, .labels = {}};
     if ((err = asm_ctor(&assembler)) != SUCCESSFUL_RETURN)
     {
         PRINT_COLOR(EXTRA_RED, "MEMORY ALLOCATION ERROR WHILE DOING STACK_CTOR");
         return 0;
     }
+
+    put_signature(&assembler, fp_w);
 
     assemble(fp_r, &assembler);
 

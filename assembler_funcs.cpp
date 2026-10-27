@@ -1,6 +1,5 @@
 #include "assembler.h"
 #include <string.h>
-// TODO review neighbour's code and mentors
 
 data_hash cmd_hashes[] =
 {
@@ -167,7 +166,7 @@ error_codes pass(FILE *fp_r, asm_t *assembler)
 
     assembler->ip = 0;
     rewind(fp_r);
-    error_codes err = SUCCESSFUL_RETURN;
+    error_codes err = SUCCESSFUL_RETURN; // TODO ONEGIN reader
 
     while (fgets(assembler->line, MAX_COMMAND_SIZE, fp_r))
     {
@@ -250,20 +249,23 @@ error_codes execute_variable(asm_t *assembler, char specifier[], size_t command)
 {
     assert(assembler);
 
-    char reg[MAX_COMMAND_SIZE] = {};
+    char reg[MAX_COMMAND_SIZE] = "";
     stack_elem_t elem = 0;
+    int pos = -1;
 
-    bool is_push = (command & 0x1F) == CMD_PUSH;
-    bool is_pop = (command & 0x1F) == CMD_POP;
-    bool is_memory = (command & MODE_M) != 0;
+    bool is_push   = ((command & 0x1F)   == CMD_PUSH);
+    bool is_pop    = ((command & 0x1F)   == CMD_POP);
+    bool is_memory = ((command & MODE_M) != 0);
 
     bool allow_constant = is_push || (is_pop && is_memory);
 
-    if (sscanf(specifier, "%[A-IX]", reg) == 1)
+    if (sscanf(specifier, " %1[A-I]X%n", reg, &pos) == 1 && pos != -1)
     {
+        reg[1] = 'X';
+
         stack_elem_t rnum = get_register(reg);
         command = command | MODE_R;
-        if (sscanf(specifier, "%*[^+]+ " deb_spec, &elem) == 1)
+        if (sscanf(specifier, " %*[^+] + " deb_spec, &elem) == 1)
         {
             if (!allow_constant)
                 return WRONG_POP_PARAMETERS;
@@ -370,5 +372,10 @@ void sort_hashes_and_regs(void)
     qsort(r_hashes, sizeof(r_hashes) / sizeof(r_hashes[0]), sizeof(r_hashes[0]), compare_hashes_up);
 }
 
+void put_signature(asm_t *assembler, FILE *fp_w)
+{
+    fwrite(MESSAGE, sizeof(char), MESSAGE_SIZE, fp_w);
 
+
+}
 

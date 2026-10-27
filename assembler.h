@@ -7,6 +7,8 @@ const int MAX_BUFFER_SIZE = 2000;
 const int MAX_MARK_NAME_SIZE = 20;
 const int MAX_COMMAND_NAME_LEN = 10;
 const int MAX_REGISTER_NAME_LEN = 3;
+const char MESSAGE[] = "THIS PROJECT CONSISTS OF MIHRIK'S IMPLEMENTATION OF THE VIRTUAL PROCESSOR AND ASSEMBLER  V2.28";
+const int MESSAGE_SIZE = sizeof(MESSAGE);
 
 #define MODE_M 128
 #define MODE_R 64
@@ -101,5 +103,6 @@ size_t hash_binary_search(size_t hash, const data_hash table[], size_t arr_len);
 int compare_hashes_up(const void *val1, const void *val2);
 void sort_hashes_and_regs(void);
 error_codes execute_variable(asm_t *assembler, char specifier[], size_t command);
+void put_signature(asm_t *assembler, FILE *fp_w);
 
 #endif

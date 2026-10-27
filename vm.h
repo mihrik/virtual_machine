@@ -6,6 +6,7 @@
 const int RAM_SIZE = 6000;
 const int DISPLAY_WIDTH = 100;
 const int DISPLAY_HEIGHT = 50;
+const int REGISTERS_SIZE = 10;
 
 typedef struct buf_data
 {
@@ -21,7 +22,7 @@ typedef struct vm_t
     stack_elem_t *RAM;
     size_t ip;
     size_t code_size;
-    stack_elem_t registers[10];
+    stack_elem_t registers[REGISTERS_SIZE];
 } vm_t;
 
 #define VM_JMP_CONDITIONAL(vm, sign) {\
@@ -42,6 +43,16 @@ typedef struct vm_t
     STACK_POP(&(vm->stack), &elem2);\
     STACK_PUSH(&(vm->stack), elem2 sign elem1);\
 }
+
+#define IS_ZERO() {\
+    stack_elem_t is_zero = 0;\
+    \
+    STACK_POP(&(vm->stack), &is_zero);\
+    if (is_zero == 0)\
+        return ZERO_DIVISION_ERROR;\
+    STACK_PUSH(&(vm->stack), is_zero);\
+}
+
 
 error_codes eval(vm_t *stack, FILE *fp);
 stack_elem_t * read_text(FILE *fp, vm_t *vm);
@@ -71,5 +82,9 @@ error_codes vm_je(vm_t *vm);
 error_codes vm_jne(vm_t *vm);
 error_codes vm_dtor(vm_t *vm);
 error_codes vm_pop(vm_t *vm);
+stack_elem_t * get_arg(vm_t *vm);
+error_codes check_pop_parameters(size_t command);
+error_codes check_push_parameters(size_t command);
+void skip_signature(FILE *fp);
 
 #endif

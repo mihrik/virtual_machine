@@ -6,10 +6,10 @@
 typedef enum commands
 {
     CMD_PUSH = 1,
-    CMD_ADD = 2,
-    CMD_SUB = 3,
-    CMD_DIV = 4,
-    CMD_OUT = 5,
+    CMD_ADD  = 2,
+    CMD_SUB  = 3,
+    CMD_DIV  = 4,
+    CMD_OUT  = 5,
     CMD_POP = 6,
     CMD_MUL = 7,
     CMD_JMP = 8,

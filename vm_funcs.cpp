@@ -4,30 +4,31 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include "assembler.h"
 
 error_codes (*to_execute[])(vm_t *vm) =
 {
-    vm_uc,
-    vm_push,
-    vm_add,
-    vm_sub,
-    vm_div,
-    vm_out,
-    vm_pop,
-    vm_mul,
-    vm_jmp,
-    vm_ja,
-    vm_jae,
-    vm_jb,
-    vm_jbe,
-    vm_je,
-    vm_jne,
-    vm_in,
-    vm_call,
-    vm_ret,
-    vm_sqrt,
-    vm_draw,
-    vm_hlt
+    vm_uc,          // 0
+    vm_push,        // 1
+    vm_add,         // 2
+    vm_sub,         // 3
+    vm_div,         // 4
+    vm_out,         // 5
+    vm_pop,         // 6
+    vm_mul,         // 7
+    vm_jmp,         // 8
+    vm_ja,          // 9
+    vm_jae,         // 10
+    vm_jb,          // 11
+    vm_jbe,         // 12
+    vm_je,          // 13
+    vm_jne,         // 14
+    vm_in,          // 15
+    vm_call,        // 16
+    vm_ret,         // 17
+    vm_sqrt,        // 18
+    vm_draw,        // 19
+    vm_hlt          // 20
 };
 
 error_codes args_analysis(int argc, const char * const argv[], FILE **fp)
@@ -82,7 +83,7 @@ stack_elem_t * read_text(FILE *fp, vm_t *vm)
     if (buffer == NULL)
         return NULL;
 
-
+    skip_signature(fp);
     fread(buffer, sizeof(stack_elem_t), (size_t)buf_size, fp);
 
     return buffer;
@@ -103,65 +104,18 @@ error_codes vm_push(vm_t *vm)
 {
     assert(vm);
 
-    stack_elem_t res = 0;
-    stack_elem_t *args = vm->code + vm->ip + 1;
-    bool has_K = false;
-    bool has_R = false;
-    bool has_M = false;
-
-    if (vm->code[vm->ip] & 0x20)
-    {
-        res += *args;
-        args++;
-        has_K = true;
-    }
-    if (vm->code[vm->ip] & 0x40)
-    {
-        res += vm->registers[*args];
-        args++;
-        has_R = true;
-    }
-    if (vm->code[vm->ip] & 0x80)
-    {
-        if (res >= RAM_SIZE || res < 0)
-        {
-            vm_dump(vm, "RAM SIZE WAS EXCEEDED", "vm_push");
-            return RAM_SIZE_EXCEEDED;
-        }
-        res = vm->RAM[res];
-        has_M = true;
-    }
-
-    if (!has_M && !has_K && !has_R)
+    if (check_push_parameters(vm->code[vm->ip]) != SUCCESSFUL_RETURN)
     {
         vm_dump(vm, "wrong parameters of vm_push", "vm_push");
         return WRONG_PUSH_PARAMETERS;
     }
 
-    vm->ip = (size_t)(args - vm->code) - 1;
+    stack_elem_t *arg = get_arg(vm);
 
-    STACK_PUSH(&(vm->stack), res);
+    if (arg == NULL)
+        return RAM_SIZE_EXCEEDED;
 
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes vm_popr(vm_t *vm)
-{
-    assert(vm);
-
-    vm->ip++;
-    registers reg = (registers)(vm->code)[vm->ip];
-
-    if (reg <= 0 || reg >= sizeof(vm->registers) / sizeof(vm->registers[0]))
-    {
-        vm_dump(vm, "impossible register number", "vm_popr");
-        return IMPOSSIBLE_REG_NUM;
-    }
-
-    stack_elem_t elem = 0;
-    STACK_POP(&(vm->stack), &elem);
-
-    vm->registers[reg] = elem;
+    STACK_PUSH(&(vm->stack), *arg);
 
     return SUCCESSFUL_RETURN;
 }
@@ -273,20 +227,6 @@ error_codes vm_ctor(vm_t *vm, FILE *fp)
     return SUCCESSFUL_RETURN;
 }
 
-error_codes vm_popm(vm_t *vm)
-{
-    assert(vm);
-
-    vm->ip++;
-    stack_elem_t elem = 0;
-
-    STACK_POP(&(vm->stack), &elem);
-
-    (vm->RAM)[(vm->code)[vm->ip]] = elem;
-
-    return SUCCESSFUL_RETURN;
-}
-
 error_codes vm_draw(vm_t *vm)
 {
     assert(vm);
@@ -303,20 +243,6 @@ error_codes vm_draw(vm_t *vm)
             putchar(vm->RAM[i * DISPLAY_WIDTH + j]);
         putchar('\n');
     }
-
-    return SUCCESSFUL_RETURN;
-}
-
-error_codes vm_popmr(vm_t *vm)
-{
-    assert(vm);
-
-    vm->ip++;
-
-    stack_elem_t elem = 0;
-    STACK_POP(&(vm->stack), &elem);
-
-    (vm->RAM)[vm->registers[vm->code[vm->ip]]] = elem;
 
     return SUCCESSFUL_RETURN;
 }
@@ -436,6 +362,8 @@ error_codes vm_div(vm_t *vm)
 {
     assert(vm);
 
+    IS_ZERO();
+
     VM_ARITHMETIC(vm, /);
 
     return SUCCESSFUL_RETURN;
@@ -526,53 +454,85 @@ error_codes vm_pop(vm_t *vm)
 {
     assert(vm);
 
-    stack_elem_t res = 0;
-    stack_elem_t elem = 0;
-    size_t rnum = 0;
+    if (check_pop_parameters(vm->code[vm->ip]) != SUCCESSFUL_RETURN)
+    {
+        vm_dump(vm, "wrong parameters of vm_pop", "vm_pop");
+        return WRONG_POP_PARAMETERS;
+    }
+
+    stack_elem_t *arg = get_arg(vm);
+
+    if (arg == NULL)
+        return RAM_SIZE_EXCEEDED;
+
+    STACK_POP(&(vm->stack), arg);
+
+    return SUCCESSFUL_RETURN;
+}
+
+stack_elem_t * get_arg(vm_t *vm)
+{
     stack_elem_t *args = vm->code + vm->ip + 1;
-    bool has_K = false;
-    bool has_R = false;
-    bool has_M = false;
+    const size_t command = vm->code[vm->ip];
 
-    if (vm->code[vm->ip] & 0x20)
-    {
-        res += *args;
-        args++;
-        has_K = true;
-    }
-    if (vm->code[vm->ip] & 0x40)
-    {
-        rnum = *args;
-        args++;
+    vm->registers[0] = 0;
+    stack_elem_t *res = &vm->registers[0];
 
-        res += vm->registers[rnum];
-        has_R = true;
-    }
-    if (vm->code[vm->ip] & 0x80)
+    if (command & 0x20)
     {
-        if (res >= RAM_SIZE || res < 0)
+        *res = *args++;
+    }
+
+    if (command & 0x40)
+    {
+        stack_elem_t *reg = &vm->registers[*args++];
+
+        if (command & 0x20)
+            *res += *reg;
+        else
+            res = reg;
+    }
+
+    if (command & 0x80)
+    {
+        if (*res >= RAM_SIZE || *res < 0)
         {
-            vm_dump(vm, "RAM SIZE WAS EXCEEDED", "vm_push");
-            return RAM_SIZE_EXCEEDED;
+            return NULL;
         }
 
-        STACK_POP(&(vm->stack), &elem);
-        vm->RAM[res] = elem;
-
-        vm->ip = (size_t)(args - vm->code) - 1;
-        return SUCCESSFUL_RETURN;
-    }
-
-    if (!has_M && !has_K && !has_R)
-    {
-        vm_dump(vm, "wrong parameters of vm_push", "vm_push");
-        return WRONG_PUSH_PARAMETERS;
+        res = &vm->RAM[*res];
     }
 
     vm->ip = (size_t)(args - vm->code) - 1;
 
-    STACK_POP(&(vm->stack), &elem);
-    vm->registers[rnum] = elem;
+    return res;
+}
+
+error_codes check_pop_parameters(size_t command)
+{
+    bool has_K = ((command & 0x20) != 0);
+    bool has_R = ((command & 0x40) != 0);
+    bool has_M = ((command & 0x80) != 0);
+
+    if ((!has_K && !has_R) || (has_K && !has_M))
+        return WRONG_POP_PARAMETERS;
 
     return SUCCESSFUL_RETURN;
+}
+
+error_codes check_push_parameters(size_t command)
+{
+    bool has_K = ((command & 0x20) != 0);
+    bool has_R = ((command & 0x40) != 0);
+    bool has_M = ((command & 0x80) != 0);
+
+    if (!has_K && !has_R)
+        return WRONG_PUSH_PARAMETERS;
+
+    return SUCCESSFUL_RETURN;
+}
+
+void skip_signature(FILE *fp)
+{
+    fseek(fp, MESSAGE_SIZE, SEEK_SET);
 }
